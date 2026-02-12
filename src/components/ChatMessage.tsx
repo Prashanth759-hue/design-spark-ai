@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Bot, User } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export interface Message {
   id: string;
@@ -48,9 +50,27 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
-        <div className="text-sm text-secondary-foreground leading-relaxed whitespace-pre-wrap">
-          {message.content}
-        </div>
+        {isUser ? (
+          <div className="text-sm text-secondary-foreground leading-relaxed whitespace-pre-wrap">
+            {message.content}
+          </div>
+        ) : (
+          <div className="prose prose-sm prose-invert max-w-none text-secondary-foreground leading-relaxed
+            prose-headings:text-foreground prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1.5
+            prose-strong:text-primary prose-strong:font-semibold
+            prose-code:text-primary prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono
+            prose-pre:bg-secondary prose-pre:border prose-pre:border-border prose-pre:rounded-lg prose-pre:p-3
+            prose-table:border-collapse prose-th:border prose-th:border-border prose-th:px-3 prose-th:py-1.5 prose-th:bg-secondary prose-th:text-xs prose-th:font-medium prose-th:text-foreground
+            prose-td:border prose-td:border-border prose-td:px-3 prose-td:py-1.5 prose-td:text-xs
+            prose-li:text-secondary-foreground prose-li:marker:text-primary
+            prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+            prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5"
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
     </motion.div>
   );
