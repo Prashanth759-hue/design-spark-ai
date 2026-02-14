@@ -1,4 +1,7 @@
+export type StructureType = "beam" | "car" | "building" | "bridge" | "generic";
+
 export interface DesignParams {
+  structureType: StructureType;
   beamLength: number;
   beamHeight: number;
   beamWidth: number;
@@ -8,9 +11,15 @@ export interface DesignParams {
   columnColor: string;
   baseColor: string;
   label: string;
+  // Car-specific
+  wheelbase?: number;
+  trackWidth?: number;
+  groundClearance?: number;
+  bodyHeight?: number;
 }
 
 const DEFAULT_PARAMS: DesignParams = {
+  structureType: "beam",
   beamLength: 4,
   beamHeight: 0.3,
   beamWidth: 0.6,
@@ -32,9 +41,28 @@ const MATERIAL_COLORS: Record<string, { main: string; column: string; base: stri
   wood: { main: "#d97706", column: "#92400e", base: "#78350f" },
 };
 
+const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
+  car: ["car", "vehicle", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis", "bev", "ev ", "motor vehicle", "truck", "pickup"],
+  bridge: ["bridge", "span", "abutment", "pier", "deck slab"],
+  building: ["building", "floor", "storey", "story", "foundation", "slab"],
+  beam: ["beam", "girder", "truss", "i-beam", "cantilever"],
+  generic: [],
+};
+
+function detectStructureType(text: string): StructureType {
+  const lower = text.toLowerCase();
+  // Check in priority order
+  for (const type of ["car", "bridge", "building", "beam"] as StructureType[]) {
+    for (const kw of STRUCTURE_KEYWORDS[type]) {
+      if (lower.includes(kw)) return type;
+    }
+  }
+  return "beam";
+}
+
 /**
  * Parse the latest assistant message content and extract design parameters
- * for the 3D viewport. Looks for dimensions, materials, and labels.
+ * for the 3D viewport. Looks for dimensions, materials, labels, and structure type.
  */
 export function parseDesignParams(messages: { role: string; content: string }[]): DesignParams {
   // Find last assistant message
@@ -44,10 +72,15 @@ export function parseDesignParams(messages: { role: string; content: string }[])
   const text = assistantMsgs[assistantMsgs.length - 1].content.toLowerCase();
   const params = { ...DEFAULT_PARAMS };
 
+  // Detect what type of structure is being discussed
+  // Also check user messages for context
+  const allText = messages.map((m) => m.content).join(" ").toLowerCase();
+  params.structureType = detectStructureType(allText);
+
   // Extract dimensions — look for patterns like "4000mm x 300mm x 600mm", "length: 5m", etc.
-  const lengthMatch = text.match(/(?:length|span|long)[:\s]*(\d+\.?\d*)\s*(mm|cm|m|ft|in)/);
-  const heightMatch = text.match(/(?:height|depth|thick)[:\s]*(\d+\.?\d*)\s*(mm|cm|m|ft|in)/);
-  const widthMatch = text.match(/(?:width|wide|breadth)[:\s]*(\d+\.?\d*)\s*(mm|cm|m|ft|in)/);
+  const lengthMatch = text.match(/(?:length|span|long|wheelbase)[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m|ft|in)/);
+  const heightMatch = text.match(/(?:height|depth|thick|ground clearance)[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m|ft|in)/);
+  const widthMatch = text.match(/(?:width|wide|breadth|track width)[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m|ft|in)/);
 
   const toMeters = (val: number, unit: string): number => {
     switch (unit) {
@@ -60,12 +93,10 @@ export function parseDesignParams(messages: { role: string; content: string }[])
     }
   };
 
-  // Scale to viewport-friendly sizes (1-8 range)
   const clampScale = (meters: number, min = 0.1, max = 8): number => {
     if (meters <= 0) return DEFAULT_PARAMS.beamLength;
-    // Normalize: anything under 0.01m gets scaled up, anything over 20m gets scaled down
     let scaled = meters;
-    if (scaled > 10) scaled = scaled / 1000; // probably mm
+    if (scaled > 10) scaled = scaled / 1000;
     if (scaled > 10) scaled = 8;
     if (scaled < 0.05) scaled = 0.1;
     return Math.max(min, Math.min(max, scaled));
@@ -81,12 +112,30 @@ export function parseDesignParams(messages: { role: string; content: string }[])
     params.beamWidth = clampScale(toMeters(parseFloat(widthMatch[1]), widthMatch[2]), 0.1, 2);
   }
 
-  // Also check for "dimensions" pattern like "4m x 0.3m x 0.6m"
+  // Dimensions pattern like "4m x 0.3m x 0.6m"
   const dimMatch = text.match(/(\d+\.?\d*)\s*(mm|cm|m)\s*[x×]\s*(\d+\.?\d*)\s*(mm|cm|m)\s*[x×]\s*(\d+\.?\d*)\s*(mm|cm|m)/);
   if (dimMatch) {
     params.beamLength = clampScale(toMeters(parseFloat(dimMatch[1]), dimMatch[2]), 1, 8);
     params.beamHeight = clampScale(toMeters(parseFloat(dimMatch[3]), dimMatch[4]), 0.1, 2);
     params.beamWidth = clampScale(toMeters(parseFloat(dimMatch[5]), dimMatch[6]), 0.1, 2);
+  }
+
+  // Car-specific parsing
+  if (params.structureType === "car") {
+    const wbMatch = text.match(/wheelbase[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m)/);
+    const twMatch = text.match(/track\s*width[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m)/);
+    const gcMatch = text.match(/ground\s*clearance[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m)/);
+    
+    if (wbMatch) params.wheelbase = toMeters(parseFloat(wbMatch[1]), wbMatch[2]);
+    if (twMatch) params.trackWidth = toMeters(parseFloat(twMatch[1]), twMatch[2]);
+    if (gcMatch) params.groundClearance = toMeters(parseFloat(gcMatch[1]), gcMatch[2]);
+    
+    // Set sensible defaults for car
+    params.wheelbase = params.wheelbase || 2.85;
+    params.trackWidth = params.trackWidth || 1.58;
+    params.groundClearance = params.groundClearance || 0.145;
+    params.bodyHeight = 1.45;
+    params.label = "Vehicle Design";
   }
 
   // Extract material
@@ -99,16 +148,22 @@ export function parseDesignParams(messages: { role: string; content: string }[])
     }
   }
 
-  // Extract label from bold text or heading near "design" or "structure"
-  const labelMatch = text.match(/\*\*([^*]{3,40}(?:beam|structure|frame|truss|column|bridge|girder)[^*]{0,20})\*\*/i)
-    || text.match(/#+\s*(.{3,40}(?:beam|structure|frame|truss|column|bridge|girder).{0,20})/i);
-  if (labelMatch) {
-    params.label = labelMatch[1].trim().slice(0, 30);
+  // Extract label from bold text or heading
+  if (params.structureType === "car") {
+    const carLabel = text.match(/\*\*([^*]{3,40}(?:car|vehicle|sedan|suv|bev|ev|auto)[^*]{0,20})\*\*/i)
+      || text.match(/#+\s*(.{3,40}(?:car|vehicle|sedan|suv|bev|ev|auto).{0,20})/i);
+    if (carLabel) params.label = carLabel[1].trim().slice(0, 30);
+  } else {
+    const labelMatch = text.match(/\*\*([^*]{3,40}(?:beam|structure|frame|truss|column|bridge|girder)[^*]{0,20})\*\*/i)
+      || text.match(/#+\s*(.{3,40}(?:beam|structure|frame|truss|column|bridge|girder).{0,20})/i);
+    if (labelMatch) params.label = labelMatch[1].trim().slice(0, 30);
   }
 
-  // Adjust column proportions based on beam
-  params.columnHeight = Math.max(0.5, params.beamHeight * 4);
-  params.columnWidth = Math.max(0.1, params.beamWidth * 0.4);
+  // Adjust column proportions based on beam (for non-car types)
+  if (params.structureType !== "car") {
+    params.columnHeight = Math.max(0.5, params.beamHeight * 4);
+    params.columnWidth = Math.max(0.1, params.beamWidth * 0.4);
+  }
 
   return params;
 }
