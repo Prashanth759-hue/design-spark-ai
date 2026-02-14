@@ -1,11 +1,12 @@
-import { useState, Suspense, useRef } from "react";
+import { useState, Suspense, useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Grid, Environment, Text, PerspectiveCamera } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { Box, X, Maximize2, Minimize2 } from "lucide-react";
 import * as THREE from "three";
+import { DesignParams } from "@/lib/parseDesignParams";
 
-function BeamStructure() {
+function BeamStructure({ params }: { params: DesignParams }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
@@ -14,31 +15,36 @@ function BeamStructure() {
     }
   });
 
+  const colSpacing = params.beamLength * 0.375;
+  const braceSpacing = params.beamLength * 0.1875;
+  const colY = -(params.columnHeight / 2) + params.beamHeight / 2;
+  const baseY = -(params.columnHeight) + params.beamHeight / 2 - 0.05;
+
   return (
     <group ref={groupRef}>
       {/* Main beam */}
       <mesh position={[0, 0.5, 0]}>
-        <boxGeometry args={[4, 0.3, 0.6]} />
-        <meshStandardMaterial color="#22d3ee" metalness={0.7} roughness={0.3} />
+        <boxGeometry args={[params.beamLength, params.beamHeight, params.beamWidth]} />
+        <meshStandardMaterial color={params.materialColor} metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Support columns */}
-      {[-1.5, 1.5].map((x, i) => (
-        <mesh key={i} position={[x, -0.2, 0]}>
-          <boxGeometry args={[0.25, 1.2, 0.25]} />
-          <meshStandardMaterial color="#0e7490" metalness={0.6} roughness={0.4} />
+      {[-colSpacing, colSpacing].map((x, i) => (
+        <mesh key={i} position={[x, 0.5 + colY, 0]}>
+          <boxGeometry args={[params.columnWidth, params.columnHeight, params.columnWidth]} />
+          <meshStandardMaterial color={params.columnColor} metalness={0.6} roughness={0.4} />
         </mesh>
       ))}
       {/* Cross braces */}
-      {[-0.75, 0.75].map((x, i) => (
-        <mesh key={`brace-${i}`} position={[x, 0.1, 0]} rotation={[0, 0, Math.PI / 6 * (i === 0 ? 1 : -1)]}>
-          <boxGeometry args={[0.08, 1, 0.08]} />
-          <meshStandardMaterial color="#06b6d4" metalness={0.5} roughness={0.5} />
+      {[-braceSpacing, braceSpacing].map((x, i) => (
+        <mesh key={`brace-${i}`} position={[x, 0.5 + colY * 0.5, 0]} rotation={[0, 0, Math.PI / 6 * (i === 0 ? 1 : -1)]}>
+          <boxGeometry args={[0.08, params.columnHeight * 0.8, 0.08]} />
+          <meshStandardMaterial color={params.materialColor} metalness={0.5} roughness={0.5} opacity={0.8} transparent />
         </mesh>
       ))}
       {/* Base plate */}
-      <mesh position={[0, -0.85, 0]}>
-        <boxGeometry args={[4.5, 0.1, 1]} />
-        <meshStandardMaterial color="#164e63" metalness={0.8} roughness={0.2} />
+      <mesh position={[0, 0.5 + baseY, 0]}>
+        <boxGeometry args={[params.beamLength * 1.1, 0.1, params.beamWidth * 1.5]} />
+        <meshStandardMaterial color={params.baseColor} metalness={0.8} roughness={0.2} />
       </mesh>
     </group>
   );
@@ -63,14 +69,14 @@ function StressHeatmap() {
   );
 }
 
-function SceneContent() {
+function SceneContent({ params }: { params: DesignParams }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={45} />
       <ambientLight intensity={0.3} />
       <directionalLight position={[5, 8, 5]} intensity={1} castShadow />
       <pointLight position={[-3, 2, -3]} intensity={0.4} color="#22d3ee" />
-      <BeamStructure />
+      <BeamStructure params={params} />
       <Grid
         position={[0, -0.9, 0]}
         args={[10, 10]}
@@ -98,9 +104,18 @@ function SceneContent() {
 interface Viewport3DProps {
   visible: boolean;
   onToggle: () => void;
+  designParams?: DesignParams;
 }
 
-const Viewport3D = ({ visible, onToggle }: Viewport3DProps) => {
+const DEFAULT_PARAMS: DesignParams = {
+  beamLength: 4, beamHeight: 0.3, beamWidth: 0.6,
+  columnHeight: 1.2, columnWidth: 0.25,
+  materialColor: "#22d3ee", columnColor: "#0e7490", baseColor: "#164e63",
+  label: "Beam Structure",
+};
+
+const Viewport3D = ({ visible, onToggle, designParams }: Viewport3DProps) => {
+  const params = designParams || DEFAULT_PARAMS;
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -156,14 +171,14 @@ const Viewport3D = ({ visible, onToggle }: Viewport3DProps) => {
             <div className="flex-1">
               <Canvas shadows>
                 <Suspense fallback={null}>
-                  <SceneContent />
+                  <SceneContent params={params} />
                 </Suspense>
               </Canvas>
             </div>
 
             {/* Info bar */}
             <div className="flex items-center justify-between px-3 py-1.5 border-t border-border bg-card text-[10px] text-muted-foreground font-mono">
-              <span>Beam Structure — Steel A992</span>
+              <span>{params.label} — {params.beamLength.toFixed(1)}m × {params.beamHeight.toFixed(1)}m × {params.beamWidth.toFixed(1)}m</span>
               <span>Drag to rotate • Scroll to zoom</span>
             </div>
           </motion.div>

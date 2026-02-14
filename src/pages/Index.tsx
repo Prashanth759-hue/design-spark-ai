@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import ChatMessage, { Message } from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
@@ -6,6 +6,7 @@ import WelcomeScreen from "@/components/WelcomeScreen";
 import TypingIndicator from "@/components/TypingIndicator";
 import Viewport3D from "@/components/Viewport3D";
 import { streamChat, ChatMsg } from "@/lib/streamChat";
+import { parseDesignParams } from "@/lib/parseDesignParams";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -15,6 +16,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const designParams = useMemo(() => parseDesignParams(messages), [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -144,7 +147,7 @@ const Index = () => {
           </div>
 
           {/* 3D Viewport */}
-          <Viewport3D visible={show3D} onToggle={() => setShow3D(!show3D)} />
+          <Viewport3D visible={show3D} onToggle={() => setShow3D(!show3D)} designParams={designParams} />
         </div>
       </main>
     </div>
