@@ -1,4 +1,4 @@
-export type StructureType = "beam" | "car" | "building" | "bridge" | "generic";
+export type StructureType = "beam" | "car" | "building" | "bridge" | "truss" | "generic";
 
 export interface DesignParams {
   structureType: StructureType;
@@ -43,16 +43,17 @@ const MATERIAL_COLORS: Record<string, { main: string; column: string; base: stri
 
 const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
   car: ["car", "vehicle", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis", "bev", "ev ", "motor vehicle", "truck", "pickup"],
-  bridge: ["bridge", "span", "abutment", "pier", "deck slab"],
-  building: ["building", "floor", "storey", "story", "foundation", "slab"],
-  beam: ["beam", "girder", "truss", "i-beam", "cantilever"],
+  bridge: ["bridge", "span", "abutment", "pier", "deck slab", "viaduct", "overpass"],
+  building: ["building", "floor", "storey", "story", "foundation", "slab", "tower", "skyscraper", "house", "apartment", "office block"],
+  truss: ["truss", "warren truss", "pratt truss", "howe truss", "roof truss", "space frame", "lattice"],
+  beam: ["beam", "girder", "i-beam", "cantilever", "joist"],
   generic: [],
 };
 
 function detectStructureType(text: string): StructureType {
   const lower = text.toLowerCase();
   // Check in priority order
-  for (const type of ["car", "bridge", "building", "beam"] as StructureType[]) {
+  for (const type of ["car", "bridge", "building", "truss", "beam"] as StructureType[]) {
     for (const kw of STRUCTURE_KEYWORDS[type]) {
       if (lower.includes(kw)) return type;
     }
