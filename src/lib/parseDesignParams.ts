@@ -43,7 +43,7 @@ const MATERIAL_COLORS: Record<string, { main: string; column: string; base: stri
 
 const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
   car: ["car design", "design a car", "vehicle design", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis design", "bev design", "ev design", "motor vehicle", "truck design", "pickup truck"],
-  bridge: ["bridge", "span", "abutment", "pier", "deck slab", "viaduct", "overpass"],
+  bridge: ["bridge", "abutment", "pier", "deck slab", "viaduct", "overpass"],
   building: ["building", "floor", "storey", "story", "foundation", "slab", "tower", "skyscraper", "house", "apartment", "office block"],
   truss: ["truss", "warren truss", "pratt truss", "howe truss", "roof truss", "space frame", "lattice"],
   beam: ["beam", "girder", "i-beam", "cantilever", "joist"],
@@ -73,15 +73,16 @@ export function parseDesignParams(messages: { role: string; content: string }[])
   const text = assistantMsgs[assistantMsgs.length - 1].content.toLowerCase();
   const params = { ...DEFAULT_PARAMS };
 
-  // Detect structure type — prioritize user messages for intent
-  const userText = messages.filter((m) => m.role === "user").map((m) => m.content).join(" ").toLowerCase();
-  const detectedFromUser = detectStructureType(userText);
-  // Only fall back to all text if user text doesn't give a clear match
+  // Detect structure type — use the LATEST user message for intent (not all messages)
+  const userMsgs = messages.filter((m) => m.role === "user");
+  const latestUserText = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].content.toLowerCase() : "";
+  const detectedFromUser = detectStructureType(latestUserText);
+  // Only fall back to latest assistant text if user text doesn't give a clear match
   if (detectedFromUser !== "beam") {
     params.structureType = detectedFromUser;
   } else {
-    const allText = messages.map((m) => m.content).join(" ").toLowerCase();
-    params.structureType = detectStructureType(allText);
+    // Check latest assistant message for structure context
+    params.structureType = detectStructureType(text);
   }
 
   // Extract dimensions — look for patterns like "4000mm x 300mm x 600mm", "length: 5m", etc.
