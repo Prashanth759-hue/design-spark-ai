@@ -42,7 +42,7 @@ const MATERIAL_COLORS: Record<string, { main: string; column: string; base: stri
 };
 
 const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
-  car: ["car", "vehicle", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis", "bev", "ev ", "motor vehicle", "truck", "pickup"],
+  car: ["car design", "design a car", "vehicle design", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis design", "bev design", "ev design", "motor vehicle", "truck design", "pickup truck"],
   bridge: ["bridge", "span", "abutment", "pier", "deck slab", "viaduct", "overpass"],
   building: ["building", "floor", "storey", "story", "foundation", "slab", "tower", "skyscraper", "house", "apartment", "office block"],
   truss: ["truss", "warren truss", "pratt truss", "howe truss", "roof truss", "space frame", "lattice"],
@@ -53,7 +53,7 @@ const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
 function detectStructureType(text: string): StructureType {
   const lower = text.toLowerCase();
   // Check in priority order
-  for (const type of ["car", "bridge", "building", "truss", "beam"] as StructureType[]) {
+  for (const type of ["truss", "bridge", "building", "car", "beam"] as StructureType[]) {
     for (const kw of STRUCTURE_KEYWORDS[type]) {
       if (lower.includes(kw)) return type;
     }
@@ -73,10 +73,16 @@ export function parseDesignParams(messages: { role: string; content: string }[])
   const text = assistantMsgs[assistantMsgs.length - 1].content.toLowerCase();
   const params = { ...DEFAULT_PARAMS };
 
-  // Detect what type of structure is being discussed
-  // Also check user messages for context
-  const allText = messages.map((m) => m.content).join(" ").toLowerCase();
-  params.structureType = detectStructureType(allText);
+  // Detect structure type — prioritize user messages for intent
+  const userText = messages.filter((m) => m.role === "user").map((m) => m.content).join(" ").toLowerCase();
+  const detectedFromUser = detectStructureType(userText);
+  // Only fall back to all text if user text doesn't give a clear match
+  if (detectedFromUser !== "beam") {
+    params.structureType = detectedFromUser;
+  } else {
+    const allText = messages.map((m) => m.content).join(" ").toLowerCase();
+    params.structureType = detectStructureType(allText);
+  }
 
   // Extract dimensions — look for patterns like "4000mm x 300mm x 600mm", "length: 5m", etc.
   const lengthMatch = text.match(/(?:length|span|long|wheelbase)[:\s]*(\d+[\.,]?\d*)\s*(mm|cm|m|ft|in)/);
