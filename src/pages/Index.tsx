@@ -96,6 +96,7 @@ const Index = () => {
         onModuleSelect={setActiveModule}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onNewChat={() => { setMessages([]); setShow3D(false); }}
       />
 
       <main className="flex-1 flex flex-col min-w-0">

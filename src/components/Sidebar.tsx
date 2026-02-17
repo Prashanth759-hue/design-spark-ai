@@ -27,9 +27,10 @@ interface SidebarProps {
   onModuleSelect: (id: string) => void;
   collapsed: boolean;
   onToggle: () => void;
+  onNewChat?: () => void;
 }
 
-const Sidebar = ({ activeModule, onModuleSelect, collapsed, onToggle }: SidebarProps) => {
+const Sidebar = ({ activeModule, onModuleSelect, collapsed, onToggle, onNewChat }: SidebarProps) => {
   return (
     <motion.aside
       animate={{ width: collapsed ? 56 : 260 }}
@@ -54,7 +55,7 @@ const Sidebar = ({ activeModule, onModuleSelect, collapsed, onToggle }: SidebarP
 
       {/* New Chat */}
       <div className="px-2 pt-3 pb-1 shrink-0">
-        <button className="flex items-center gap-2 w-full px-2 py-2 rounded-md text-sm text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors">
+        <button onClick={onNewChat} className="flex items-center gap-2 w-full px-2 py-2 rounded-md text-sm text-muted-foreground hover:bg-surface-hover hover:text-foreground transition-colors">
           <Plus className="w-4 h-4 shrink-0" />
           {!collapsed && <span>New Chat</span>}
         </button>
