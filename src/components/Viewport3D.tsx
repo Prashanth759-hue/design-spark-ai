@@ -1,6 +1,6 @@
 import { useState, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid, PerspectiveCamera } from "@react-three/drei";
+import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { Box, X, Maximize2, Minimize2 } from "lucide-react";
 import { DesignParams } from "@/lib/parseDesignParams";
@@ -23,11 +23,51 @@ function SceneContent({ params }: { params: DesignParams }) {
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[4, 3, 4]} fov={45} />
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[5, 8, 5]} intensity={1} castShadow />
-      <pointLight position={[-3, 2, -3]} intensity={0.4} color="#22d3ee" />
+      <PerspectiveCamera makeDefault position={[5, 3.5, 5]} fov={40} />
+
+      {/* Realistic HDR environment for reflections & ambient */}
+      <Environment preset="city" background={false} />
+
+      {/* Key light — warm directional sun */}
+      <directionalLight
+        position={[8, 12, 6]}
+        intensity={1.8}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={30}
+        shadow-camera-left={-8}
+        shadow-camera-right={8}
+        shadow-camera-top={8}
+        shadow-camera-bottom={-8}
+        shadow-bias={-0.0005}
+        color="#fff5e6"
+      />
+
+      {/* Fill light — cool blue */}
+      <directionalLight position={[-5, 6, -4]} intensity={0.4} color="#b0d4f1" />
+
+      {/* Rim / back light */}
+      <pointLight position={[-4, 3, -5]} intensity={0.6} color="#22d3ee" distance={15} decay={2} />
+
+      {/* Subtle ambient for shadow fill */}
+      <ambientLight intensity={0.15} color="#e0e7ff" />
+
+      {/* Hemisphere light for sky/ground color bleed */}
+      <hemisphereLight args={["#87ceeb", "#3d2b1f", 0.3]} />
+
       {structureMap[params.structureType] || <BeamStructure params={params} />}
+
+      {/* Contact shadows for grounding */}
+      <ContactShadows
+        position={[0, -0.9, 0]}
+        opacity={0.5}
+        scale={14}
+        blur={2.5}
+        far={6}
+        color="#1a1a2e"
+      />
+
       <Grid
         position={[0, -0.9, 0]}
         args={[10, 10]}
@@ -41,7 +81,15 @@ function SceneContent({ params }: { params: DesignParams }) {
         fadeStrength={1}
         infiniteGrid
       />
-      <OrbitControls enableDamping dampingFactor={0.05} minDistance={2} maxDistance={15} maxPolarAngle={Math.PI / 2} />
+
+      <OrbitControls
+        enableDamping
+        dampingFactor={0.08}
+        minDistance={2}
+        maxDistance={15}
+        maxPolarAngle={Math.PI / 2.1}
+        rotateSpeed={0.5}
+      />
     </>
   );
 }
@@ -116,7 +164,7 @@ const Viewport3D = ({ visible, onToggle, designParams }: Viewport3DProps) => {
             </div>
 
             <div className="flex-1">
-              <Canvas shadows>
+              <Canvas shadows gl={{ antialias: true, toneMapping: 3, toneMappingExposure: 1.1 }}>
                 <Suspense fallback={null}>
                   <SceneContent params={params} />
                 </Suspense>
