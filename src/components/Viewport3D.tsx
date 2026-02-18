@@ -9,6 +9,7 @@ import { CarStructure } from "@/components/3d/CarStructure";
 import { BridgeStructure } from "@/components/3d/BridgeStructure";
 import { BuildingStructure } from "@/components/3d/BuildingStructure";
 import { TrussStructure } from "@/components/3d/TrussStructure";
+import { StructureDimensions, CarDimensions } from "@/components/3d/DimensionLabel";
 
 /* ──────────────────────── Scene ──────────────────────── */
 function SceneContent({ params }: { params: DesignParams }) {
@@ -57,6 +58,23 @@ function SceneContent({ params }: { params: DesignParams }) {
       <hemisphereLight args={["#87ceeb", "#3d2b1f", 0.3]} />
 
       {structureMap[params.structureType] || <BeamStructure params={params} />}
+
+      {/* Dimension labels */}
+      {params.structureType === "car" ? (
+        <CarDimensions
+          wheelbase={params.wheelbase || 2.85}
+          trackWidth={params.trackWidth || 1.58}
+          bodyLength={(params.wheelbase || 2.85) * 1.6}
+          bodyHeight={1.2}
+          originY={0.1}
+        />
+      ) : (
+        <StructureDimensions
+          length={params.beamLength}
+          height={params.columnHeight}
+          width={params.beamWidth}
+        />
+      )}
 
       {/* Contact shadows for grounding */}
       <ContactShadows
