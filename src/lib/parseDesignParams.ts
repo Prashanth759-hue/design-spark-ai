@@ -52,13 +52,46 @@ const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
 
 function detectStructureType(text: string): StructureType {
   const lower = text.toLowerCase();
-  // Check in priority order
-  for (const type of ["truss", "bridge", "building", "car", "beam"] as StructureType[]) {
+
+  // Score each type by counting keyword matches, with negative-context filtering
+  const negativePatterns: Record<string, RegExp[]> = {
+    bridge: [/(?:not|don'?t|no|isn'?t|without|rather than|instead of|seeing)\s+(?:a\s+)?bridge/i],
+    car: [/(?:not|don'?t|no|isn'?t|without|rather than|instead of)\s+(?:a\s+)?car/i],
+    building: [/(?:not|don'?t|no|isn'?t|without|rather than|instead of)\s+(?:a\s+)?building/i],
+    truss: [/(?:not|don'?t|no|isn'?t|without|rather than|instead of)\s+(?:a\s+)?truss/i],
+  };
+
+  const scores: Record<string, number> = {};
+  const types: StructureType[] = ["car", "truss", "bridge", "building", "beam"];
+
+  for (const type of types) {
+    let score = 0;
+    // Check if user is negating this type
+    const negs = negativePatterns[type] || [];
+    const isNegated = negs.some((re) => re.test(lower));
+    if (isNegated) {
+      scores[type] = -10;
+      continue;
+    }
     for (const kw of STRUCTURE_KEYWORDS[type]) {
-      if (lower.includes(kw)) return type;
+      // Count occurrences for stronger signal
+      const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+      const matches = lower.match(re);
+      if (matches) score += matches.length;
+    }
+    scores[type] = score;
+  }
+
+  // Find the type with the highest positive score
+  let best: StructureType = "beam";
+  let bestScore = 0;
+  for (const type of types) {
+    if ((scores[type] || 0) > bestScore) {
+      bestScore = scores[type];
+      best = type;
     }
   }
-  return "beam";
+  return best;
 }
 
 /**
@@ -73,15 +106,21 @@ export function parseDesignParams(messages: { role: string; content: string }[])
   const text = assistantMsgs[assistantMsgs.length - 1].content.toLowerCase();
   const params = { ...DEFAULT_PARAMS };
 
-  // Detect structure type — use the LATEST user message for intent (not all messages)
+  // Detect structure type — scan the last 3 user messages (most recent first) for strongest signal
   const userMsgs = messages.filter((m) => m.role === "user");
-  const latestUserText = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].content.toLowerCase() : "";
-  const detectedFromUser = detectStructureType(latestUserText);
-  // Only fall back to latest assistant text if user text doesn't give a clear match
-  if (detectedFromUser !== "beam") {
-    params.structureType = detectedFromUser;
+  const recentUserMsgs = userMsgs.slice(-3).reverse(); // newest first
+  let detectedType: StructureType = "beam";
+  for (const msg of recentUserMsgs) {
+    const detected = detectStructureType(msg.content);
+    if (detected !== "beam") {
+      detectedType = detected;
+      break;
+    }
+  }
+  if (detectedType !== "beam") {
+    params.structureType = detectedType;
   } else {
-    // Check latest assistant message for structure context
+    // Fallback: check latest assistant message
     params.structureType = detectStructureType(text);
   }
 
