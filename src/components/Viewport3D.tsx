@@ -5,16 +5,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Box, X, Maximize2, Minimize2 } from "lucide-react";
 import { DesignParams } from "@/lib/parseDesignParams";
 import { BeamStructure } from "@/components/3d/BeamStructure";
-import { CarStructure } from "@/components/3d/CarStructure";
 import { BridgeStructure } from "@/components/3d/BridgeStructure";
 import { BuildingStructure } from "@/components/3d/BuildingStructure";
 import { TrussStructure } from "@/components/3d/TrussStructure";
 import { StructureDimensions, CarDimensions } from "@/components/3d/DimensionLabel";
+import { SportsCar } from "@/components/3d/SportsCar";
+import { CarConfig } from "@/components/CarConfigurator";
+
+const DEFAULT_CAR_CONFIG: CarConfig = {
+  bodyColor: "#c8102e",
+  rimColor: "#d4d4d8",
+  paintFinish: "gloss",
+  windowTint: 0.3,
+  headlightColor: "#fef08a",
+  rimStyle: "spoke",
+  bodyKit: "stock",
+};
 
 /* ──────────────────────── Scene ──────────────────────── */
 function SceneContent({ params }: { params: DesignParams }) {
+  const carConfig: CarConfig = {
+    ...DEFAULT_CAR_CONFIG,
+    bodyColor: params.materialColor || DEFAULT_CAR_CONFIG.bodyColor,
+  };
+
   const structureMap: Record<string, JSX.Element> = {
-    car: <CarStructure params={params} />,
+    car: <SportsCar config={carConfig} autoRotate={false} />,
     bridge: <BridgeStructure params={params} />,
     building: <BuildingStructure params={params} />,
     truss: <TrussStructure params={params} />,
@@ -25,41 +41,20 @@ function SceneContent({ params }: { params: DesignParams }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[5, 3.5, 5]} fov={40} />
+      <Environment preset="studio" background={false} />
 
-      {/* Realistic HDR environment for reflections & ambient */}
-      <Environment preset="city" background={false} />
-
-      {/* Key light — warm directional sun */}
-      <directionalLight
-        position={[8, 12, 6]}
-        intensity={1.8}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={30}
-        shadow-camera-left={-8}
-        shadow-camera-right={8}
-        shadow-camera-top={8}
-        shadow-camera-bottom={-8}
-        shadow-bias={-0.0005}
-        color="#fff5e6"
-      />
-
-      {/* Fill light — cool blue */}
+      <directionalLight position={[8, 12, 6]} intensity={1.8} castShadow
+        shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+        shadow-camera-far={30} shadow-camera-left={-8} shadow-camera-right={8}
+        shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-0.0005}
+        color="#fff5e6" />
       <directionalLight position={[-5, 6, -4]} intensity={0.4} color="#b0d4f1" />
-
-      {/* Rim / back light */}
       <pointLight position={[-4, 3, -5]} intensity={0.6} color="#22d3ee" distance={15} decay={2} />
-
-      {/* Subtle ambient for shadow fill */}
       <ambientLight intensity={0.15} color="#e0e7ff" />
-
-      {/* Hemisphere light for sky/ground color bleed */}
       <hemisphereLight args={["#87ceeb", "#3d2b1f", 0.3]} />
 
       {structureMap[params.structureType] || <BeamStructure params={params} />}
 
-      {/* Dimension labels */}
       {params.structureType === "car" ? (
         <CarDimensions
           wheelbase={params.wheelbase || 2.85}
@@ -76,38 +71,14 @@ function SceneContent({ params }: { params: DesignParams }) {
         />
       )}
 
-      {/* Contact shadows for grounding */}
-      <ContactShadows
-        position={[0, -0.9, 0]}
-        opacity={0.5}
-        scale={14}
-        blur={2.5}
-        far={6}
-        color="#1a1a2e"
-      />
+      <ContactShadows position={[0, -0.9, 0]} opacity={0.5} scale={14} blur={2.5} far={6} color="#1a1a2e" />
 
-      <Grid
-        position={[0, -0.9, 0]}
-        args={[10, 10]}
-        cellSize={0.5}
-        cellThickness={0.5}
-        cellColor="#1e3a5f"
-        sectionSize={2}
-        sectionThickness={1}
-        sectionColor="#22d3ee"
-        fadeDistance={12}
-        fadeStrength={1}
-        infiniteGrid
-      />
+      <Grid position={[0, -0.9, 0]} args={[10, 10]} cellSize={0.5} cellThickness={0.5}
+        cellColor="#1e3a5f" sectionSize={2} sectionThickness={1} sectionColor="#22d3ee"
+        fadeDistance={12} fadeStrength={1} infiniteGrid />
 
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.08}
-        minDistance={2}
-        maxDistance={15}
-        maxPolarAngle={Math.PI / 2.1}
-        rotateSpeed={0.5}
-      />
+      <OrbitControls enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15}
+        maxPolarAngle={Math.PI / 2.1} rotateSpeed={0.5} />
     </>
   );
 }
@@ -117,6 +88,7 @@ interface Viewport3DProps {
   visible: boolean;
   onToggle: () => void;
   designParams?: DesignParams;
+  onOpenConfigurator?: () => void;
 }
 
 const DEFAULT_PARAMS: DesignParams = {
@@ -131,7 +103,7 @@ const TYPE_LABELS: Record<string, string> = {
   car: "Vehicle", bridge: "Bridge", building: "Building", truss: "Truss", beam: "Beam", generic: "Preview",
 };
 
-const Viewport3D = ({ visible, onToggle, designParams }: Viewport3DProps) => {
+const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Viewport3DProps) => {
   const params = designParams || DEFAULT_PARAMS;
   const [expanded, setExpanded] = useState(false);
 
@@ -172,6 +144,14 @@ const Viewport3D = ({ visible, onToggle, designParams }: Viewport3DProps) => {
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                {params.structureType === "car" && onOpenConfigurator && (
+                  <button
+                    onClick={onOpenConfigurator}
+                    className="px-2 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors mr-1"
+                  >
+                    Configurator →
+                  </button>
+                )}
                 <button onClick={() => setExpanded(!expanded)} className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors">
                   {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                 </button>

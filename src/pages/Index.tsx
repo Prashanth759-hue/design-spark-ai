@@ -5,6 +5,7 @@ import ChatInput from "@/components/ChatInput";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import TypingIndicator from "@/components/TypingIndicator";
 import Viewport3D from "@/components/Viewport3D";
+import { CarConfigurator } from "@/components/CarConfigurator";
 import { streamChat, ChatMsg } from "@/lib/streamChat";
 import { parseDesignParams } from "@/lib/parseDesignParams";
 import { toast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [show3D, setShow3D] = useState(false);
+  const [showConfigurator, setShowConfigurator] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const designParams = useMemo(() => parseDesignParams(messages), [messages]);
@@ -110,6 +112,12 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowConfigurator(true)}
+              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm"
+            >
+              🚗 3D Configurator
+            </button>
+            <button
               onClick={() => setShow3D(!show3D)}
               className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${
                 show3D
@@ -148,9 +156,20 @@ const Index = () => {
           </div>
 
           {/* 3D Viewport */}
-          <Viewport3D visible={show3D} onToggle={() => setShow3D(!show3D)} designParams={designParams} />
+          <Viewport3D
+            visible={show3D}
+            onToggle={() => setShow3D(!show3D)}
+            designParams={designParams}
+            onOpenConfigurator={() => setShowConfigurator(true)}
+          />
         </div>
       </main>
+
+      {/* Full-screen Car Configurator */}
+      <CarConfigurator
+        visible={showConfigurator}
+        onClose={() => setShowConfigurator(false)}
+      />
     </div>
   );
 };
