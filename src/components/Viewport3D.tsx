@@ -14,6 +14,8 @@ import { CarConfig } from "@/components/CarConfigurator";
 
 const DEFAULT_CAR_CONFIG: CarConfig = {
   bodyColor: "#c8102e",
+  accentColor: "#111111",
+  accentZone: "none",
   rimColor: "#d4d4d8",
   paintFinish: "gloss",
   windowTint: 0.3,

@@ -1,15 +1,20 @@
-import { useState, Suspense, useCallback } from "react";
+import { useState, Suspense, useCallback, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment, ContactShadows, Grid, PerspectiveCamera, AccumulativeShadows, RandomizedLight } from "@react-three/drei";
+import { OrbitControls, Environment, ContactShadows, Grid, PerspectiveCamera } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft } from "lucide-react";
+import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun } from "lucide-react";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { LuxurySedan } from "@/components/3d/LuxurySedan";
 import { MuscleCar } from "@/components/3d/MuscleCar";
 import { SUVCar } from "@/components/3d/SUVCar";
+import { PickupTruck } from "@/components/3d/PickupTruck";
+import { Convertible } from "@/components/3d/Convertible";
+import { VanVehicle } from "@/components/3d/VanVehicle";
 
 export interface CarConfig {
   bodyColor: string;
+  accentColor: string;
+  accentZone: "roof" | "hood" | "sides" | "none";
   rimColor: string;
   paintFinish: "gloss" | "matte" | "satin";
   windowTint: number;
@@ -18,10 +23,14 @@ export interface CarConfig {
   bodyKit: "stock" | "aero" | "carbon";
 }
 
-export type CarModel = "sports" | "sedan" | "muscle" | "suv";
+export type CarModel = "sports" | "sedan" | "muscle" | "suv" | "pickup" | "convertible" | "van";
+
+export type EnvPreset = "studio" | "night" | "sunset" | "dawn" | "warehouse" | "city";
 
 const DEFAULT_CONFIG: CarConfig = {
   bodyColor: "#c8102e",
+  accentColor: "#111111",
+  accentZone: "none",
   rimColor: "#d4d4d8",
   paintFinish: "gloss",
   windowTint: 0.3,
@@ -35,6 +44,9 @@ const CAR_MODELS: { id: CarModel; label: string; desc: string }[] = [
   { id: "sedan", label: "Luxury Sedan", desc: "BMW/Mercedes elegance" },
   { id: "muscle", label: "Muscle Car", desc: "Mustang/Camaro power" },
   { id: "suv", label: "SUV", desc: "Premium crossover" },
+  { id: "pickup", label: "Pickup Truck", desc: "Heavy-duty hauler" },
+  { id: "convertible", label: "Convertible", desc: "Open-top roadster" },
+  { id: "van", label: "Van", desc: "Spacious people mover" },
 ];
 
 const BODY_COLORS = [
@@ -68,42 +80,62 @@ const HEADLIGHT_COLORS = [
   { hex: "#f97316", name: "Amber" },
 ];
 
-type PanelTab = "model" | "paint" | "wheels" | "style";
+const ENV_PRESETS: { id: EnvPreset; label: string; desc: string; bgColor: string }[] = [
+  { id: "studio", label: "Studio", desc: "Clean white showroom", bgColor: "#1a1a2e" },
+  { id: "night", label: "Night City", desc: "Urban nightscape", bgColor: "#0a0a14" },
+  { id: "sunset", label: "Desert Road", desc: "Golden hour desert", bgColor: "#2d1b0e" },
+  { id: "dawn", label: "Race Track", desc: "Early morning circuit", bgColor: "#0e1a2d" },
+  { id: "warehouse", label: "Showroom", desc: "Industrial gallery", bgColor: "#141418" },
+  { id: "city", label: "City Street", desc: "Downtown backdrop", bgColor: "#121620" },
+];
 
-function Scene({ model, config, autoRotate }: { model: CarModel; config: CarConfig; autoRotate: boolean }) {
+type PanelTab = "model" | "paint" | "wheels" | "style" | "env";
+
+function Scene({ model, config, autoRotate, envPreset, bgColor }: {
+  model: CarModel; config: CarConfig; autoRotate: boolean; envPreset: EnvPreset; bgColor: string;
+}) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[6, 2.4, 6]} fov={36} />
+      <color attach="background" args={[bgColor]} />
 
-      {/* Studio HDR environment */}
-      <Environment preset="studio" background={false} />
+      <Environment preset={envPreset} background={false} />
 
       {/* Key light */}
-      <directionalLight position={[8, 10, 6]} intensity={2.2} castShadow
+      <directionalLight position={[8, 10, 6]} intensity={envPreset === "night" ? 0.8 : 2.2} castShadow
         shadow-mapSize-width={2048} shadow-mapSize-height={2048}
         shadow-camera-far={30} shadow-camera-left={-10} shadow-camera-right={10}
         shadow-camera-top={10} shadow-camera-bottom={-10} shadow-bias={-0.0004}
-        color="#fff8f0" />
+        color={envPreset === "sunset" ? "#ffb366" : envPreset === "night" ? "#6688cc" : "#fff8f0"} />
       {/* Fill */}
-      <directionalLight position={[-6, 5, -4]} intensity={0.6} color="#b0c8ff" />
+      <directionalLight position={[-6, 5, -4]} intensity={envPreset === "night" ? 0.2 : 0.6}
+        color={envPreset === "sunset" ? "#ff8844" : "#b0c8ff"} />
       {/* Rim */}
-      <pointLight position={[-4, 3, -6]} intensity={0.8} color="#22d3ee" distance={18} decay={2} />
+      <pointLight position={[-4, 3, -6]} intensity={envPreset === "night" ? 1.5 : 0.8}
+        color={envPreset === "night" ? "#4466ff" : "#22d3ee"} distance={18} decay={2} />
       {/* Ground bounce */}
-      <hemisphereLight args={["#e0e8ff", "#2a1a0a", 0.4]} />
-      <ambientLight intensity={0.12} color="#dde8ff" />
+      <hemisphereLight args={[
+        envPreset === "sunset" ? "#ff9955" : envPreset === "night" ? "#1a1a4e" : "#e0e8ff",
+        envPreset === "sunset" ? "#3d1a0a" : "#2a1a0a",
+        envPreset === "night" ? 0.2 : 0.4
+      ]} />
+      <ambientLight intensity={envPreset === "night" ? 0.06 : 0.12} color="#dde8ff" />
 
       {/* Car model */}
       {model === "sports" && <SportsCar config={config} autoRotate={autoRotate} />}
       {model === "sedan" && <LuxurySedan config={config} autoRotate={autoRotate} />}
       {model === "muscle" && <MuscleCar config={config} autoRotate={autoRotate} />}
       {model === "suv" && <SUVCar config={config} autoRotate={autoRotate} />}
+      {model === "pickup" && <PickupTruck config={config} autoRotate={autoRotate} />}
+      {model === "convertible" && <Convertible config={config} autoRotate={autoRotate} />}
+      {model === "van" && <VanVehicle config={config} autoRotate={autoRotate} />}
 
-      {/* Soft contact shadows */}
       <ContactShadows position={[0, -1.1, 0]} opacity={0.75} scale={18} blur={3.5} far={9} color="#0a0a1a" />
 
-      {/* Grid floor */}
       <Grid position={[0, -1.02, 0]} args={[20, 20]} cellSize={0.6} cellThickness={0.4}
-        cellColor="#1e3a5f" sectionSize={3} sectionThickness={0.8} sectionColor="#22d3ee"
+        cellColor={envPreset === "night" ? "#1a1a4e" : "#1e3a5f"}
+        sectionSize={3} sectionThickness={0.8}
+        sectionColor={envPreset === "night" ? "#4466ff" : envPreset === "sunset" ? "#ff8844" : "#22d3ee"}
         fadeDistance={16} fadeStrength={1} infiniteGrid />
 
       <OrbitControls enableDamping dampingFactor={0.08} minDistance={3} maxDistance={14}
@@ -124,9 +156,27 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
   const [autoRotate, setAutoRotate] = useState(true);
   const [activeTab, setActiveTab] = useState<PanelTab>("model");
   const [panelOpen, setPanelOpen] = useState(true);
+  const [envPreset, setEnvPreset] = useState<EnvPreset>("studio");
+  const [envBgColor, setEnvBgColor] = useState("#1a1a2e");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const update = useCallback((patch: Partial<CarConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const handleScreenshot = useCallback(() => {
+    const canvas = document.querySelector("canvas");
+    if (!canvas) return;
+    const link = document.createElement("a");
+    link.download = `${selectedModel}-config-${Date.now()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }, [selectedModel]);
+
+  const handleEnvChange = useCallback((preset: EnvPreset) => {
+    setEnvPreset(preset);
+    const env = ENV_PRESETS.find(e => e.id === preset);
+    if (env) setEnvBgColor(env.bgColor);
   }, []);
 
   const tabs: { id: PanelTab; icon: React.ReactNode; label: string }[] = [
@@ -134,6 +184,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
     { id: "paint", icon: <Palette className="w-4 h-4" />, label: "Paint" },
     { id: "wheels", icon: <Settings2 className="w-4 h-4" />, label: "Wheels" },
     { id: "style", icon: <ZapIcon className="w-4 h-4" />, label: "Style" },
+    { id: "env", icon: <Sun className="w-4 h-4" />, label: "Scene" },
   ];
 
   return (
@@ -147,9 +198,9 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
         >
           {/* 3D Canvas */}
           <div className="flex-1 relative">
-            <Canvas shadows gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.15 }}>
+            <Canvas shadows gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.15, preserveDrawingBuffer: true }}>
               <Suspense fallback={null}>
-                <Scene model={selectedModel} config={config} autoRotate={autoRotate} />
+                <Scene model={selectedModel} config={config} autoRotate={autoRotate} envPreset={envPreset} bgColor={envBgColor} />
               </Suspense>
             </Canvas>
 
@@ -168,6 +219,12 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleScreenshot}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-card/80 border-border text-muted-foreground hover:text-foreground transition-colors backdrop-blur-sm">
+                  <Camera className="w-3.5 h-3.5" />
+                  Export PNG
+                </button>
                 <button
                   onClick={() => setAutoRotate(!autoRotate)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors backdrop-blur-sm ${autoRotate ? "bg-primary/20 border-primary/40 text-primary" : "bg-card/80 border-border text-muted-foreground hover:text-foreground"}`}>
@@ -243,7 +300,6 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                               style={{ backgroundColor: c.hex }} />
                           ))}
                         </div>
-                        {/* Custom color */}
                         <div className="mt-3 flex items-center gap-2">
                           <input type="color" value={config.bodyColor}
                             onChange={(e) => update({ bodyColor: e.target.value })}
@@ -263,6 +319,39 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Two-Tone / Accent */}
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-3">Two-Tone Accent</p>
+                        <div className="grid grid-cols-4 gap-2 mb-3">
+                          {(["none", "roof", "hood", "sides"] as const).map((zone) => (
+                            <button key={zone} onClick={() => update({ accentZone: zone })}
+                              className={`py-1.5 rounded-lg text-[10px] font-medium border transition-all capitalize ${config.accentZone === zone ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-foreground hover:border-primary/40"}`}>
+                              {zone === "none" ? "Off" : zone}
+                            </button>
+                          ))}
+                        </div>
+                        {config.accentZone !== "none" && (
+                          <div>
+                            <p className="text-[10px] text-muted-foreground mb-2">Accent Color</p>
+                            <div className="grid grid-cols-6 gap-2">
+                              {BODY_COLORS.slice(0, 6).map((c) => (
+                                <button key={c.hex} onClick={() => update({ accentColor: c.hex })}
+                                  title={c.name}
+                                  className={`w-9 h-9 rounded-full border-2 transition-all hover:scale-110 ${config.accentColor === c.hex ? "border-primary scale-110 ring-2 ring-primary/40" : "border-border"}`}
+                                  style={{ backgroundColor: c.hex }} />
+                              ))}
+                            </div>
+                            <div className="mt-2 flex items-center gap-2">
+                              <input type="color" value={config.accentColor}
+                                onChange={(e) => update({ accentColor: e.target.value })}
+                                className="w-8 h-8 rounded-full cursor-pointer border-2 border-border bg-transparent" />
+                              <span className="text-[10px] text-muted-foreground">Custom</span>
+                              <span className="text-[10px] font-mono text-foreground ml-auto">{config.accentColor}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -355,11 +444,28 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                       </div>
                     </div>
                   )}
+
+                  {/* ENVIRONMENT TAB */}
+                  {activeTab === "env" && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Environment</p>
+                      {ENV_PRESETS.map((env) => (
+                        <button key={env.id} onClick={() => handleEnvChange(env.id)}
+                          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl border text-left transition-all ${envPreset === env.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:border-primary/40 text-foreground"}`}>
+                          <div className="w-6 h-6 rounded-full border border-border shrink-0" style={{ backgroundColor: env.bgColor }} />
+                          <div>
+                            <p className="text-sm font-semibold">{env.label}</p>
+                            <p className="text-[10px] text-muted-foreground">{env.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Reset button */}
                 <div className="p-4 border-t border-border shrink-0">
-                  <button onClick={() => setConfig(DEFAULT_CONFIG)}
+                  <button onClick={() => { setConfig(DEFAULT_CONFIG); handleEnvChange("studio"); }}
                     className="w-full py-2 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors">
                     Reset to Default
                   </button>
