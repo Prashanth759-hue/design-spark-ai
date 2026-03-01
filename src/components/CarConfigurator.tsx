@@ -1,8 +1,9 @@
 import { useState, Suspense, useCallback, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows, Grid, PerspectiveCamera } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun } from "lucide-react";
+import * as THREE from "three";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { LuxurySedan } from "@/components/3d/LuxurySedan";
 import { MuscleCar } from "@/components/3d/MuscleCar";
@@ -10,6 +11,7 @@ import { SUVCar } from "@/components/3d/SUVCar";
 import { PickupTruck } from "@/components/3d/PickupTruck";
 import { Convertible } from "@/components/3d/Convertible";
 import { VanVehicle } from "@/components/3d/VanVehicle";
+import { VehicleSpecsPanel } from "@/components/VehicleSpecsPanel";
 
 export interface CarConfig {
   bodyColor: string;
@@ -37,6 +39,26 @@ const DEFAULT_CONFIG: CarConfig = {
   headlightColor: "#fef08a",
   rimStyle: "spoke",
   bodyKit: "stock",
+};
+
+interface VehicleSpecs {
+  hp: number;
+  torque: string;
+  zeroToSixty: string;
+  weight: string;
+  dimensions: string;
+  engine: string;
+  topSpeed: string;
+}
+
+const VEHICLE_SPECS: Record<CarModel, VehicleSpecs> = {
+  sports: { hp: 640, torque: "600 Nm", zeroToSixty: "2.9s", weight: "1,422 kg", dimensions: "4.52 × 1.93 × 1.17 m", engine: "V10 5.2L", topSpeed: "325 km/h" },
+  sedan: { hp: 523, torque: "750 Nm", zeroToSixty: "3.6s", weight: "1,950 kg", dimensions: "5.12 × 1.90 × 1.47 m", engine: "V8 4.4L Twin-Turbo", topSpeed: "290 km/h" },
+  muscle: { hp: 480, torque: "569 Nm", zeroToSixty: "3.8s", weight: "1,735 kg", dimensions: "4.78 × 1.92 × 1.38 m", engine: "V8 5.0L", topSpeed: "265 km/h" },
+  suv: { hp: 395, torque: "550 Nm", zeroToSixty: "4.5s", weight: "2,310 kg", dimensions: "4.93 × 2.00 × 1.74 m", engine: "V6 3.0L Twin-Turbo", topSpeed: "250 km/h" },
+  pickup: { hp: 450, torque: "690 Nm", zeroToSixty: "5.1s", weight: "2,680 kg", dimensions: "5.89 × 2.03 × 1.92 m", engine: "V8 6.2L", topSpeed: "210 km/h" },
+  convertible: { hp: 455, torque: "530 Nm", zeroToSixty: "3.4s", weight: "1,585 kg", dimensions: "4.38 × 1.86 × 1.26 m", engine: "V8 4.0L Twin-Turbo", topSpeed: "310 km/h" },
+  van: { hp: 275, torque: "460 Nm", zeroToSixty: "7.8s", weight: "2,480 kg", dimensions: "5.14 × 1.93 × 1.98 m", engine: "V6 3.5L", topSpeed: "195 km/h" },
 };
 
 const CAR_MODELS: { id: CarModel; label: string; desc: string }[] = [
@@ -91,6 +113,42 @@ const ENV_PRESETS: { id: EnvPreset; label: string; desc: string; bgColor: string
 
 type PanelTab = "model" | "paint" | "wheels" | "style" | "env";
 
+/* ─── Model transition animation ─── */
+function ModelTransition({ model, config, autoRotate }: { model: CarModel; config: CarConfig; autoRotate: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [currentModel, setCurrentModel] = useState(model);
+  const [transitioning, setTransitioning] = useState(false);
+  const scaleRef = useRef(1);
+  const targetScale = useRef(1);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    scaleRef.current = THREE.MathUtils.lerp(scaleRef.current, targetScale.current, 6 * delta);
+    groupRef.current.scale.setScalar(scaleRef.current);
+  });
+
+  if (model !== currentModel && !transitioning) {
+    setTransitioning(true);
+    targetScale.current = 0;
+    setTimeout(() => {
+      setCurrentModel(model);
+      targetScale.current = 1;
+      setTimeout(() => setTransitioning(false), 400);
+    }, 250);
+  }
+
+  const CarComponent = {
+    sports: SportsCar, sedan: LuxurySedan, muscle: MuscleCar,
+    suv: SUVCar, pickup: PickupTruck, convertible: Convertible, van: VanVehicle,
+  }[currentModel];
+
+  return (
+    <group ref={groupRef}>
+      <CarComponent config={config} autoRotate={autoRotate} />
+    </group>
+  );
+}
+
 function Scene({ model, config, autoRotate, envPreset, bgColor }: {
   model: CarModel; config: CarConfig; autoRotate: boolean; envPreset: EnvPreset; bgColor: string;
 }) {
@@ -121,14 +179,8 @@ function Scene({ model, config, autoRotate, envPreset, bgColor }: {
       ]} />
       <ambientLight intensity={envPreset === "night" ? 0.06 : 0.12} color="#dde8ff" />
 
-      {/* Car model */}
-      {model === "sports" && <SportsCar config={config} autoRotate={autoRotate} />}
-      {model === "sedan" && <LuxurySedan config={config} autoRotate={autoRotate} />}
-      {model === "muscle" && <MuscleCar config={config} autoRotate={autoRotate} />}
-      {model === "suv" && <SUVCar config={config} autoRotate={autoRotate} />}
-      {model === "pickup" && <PickupTruck config={config} autoRotate={autoRotate} />}
-      {model === "convertible" && <Convertible config={config} autoRotate={autoRotate} />}
-      {model === "van" && <VanVehicle config={config} autoRotate={autoRotate} />}
+      {/* Car model with transition animation */}
+      <ModelTransition model={model} config={config} autoRotate={autoRotate} />
 
       <ContactShadows position={[0, -1.1, 0]} opacity={0.75} scale={18} blur={3.5} far={9} color="#0a0a1a" />
 
@@ -233,6 +285,9 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                 </button>
               </div>
             </div>
+
+            {/* Specs panel */}
+            <VehicleSpecsPanel model={selectedModel} />
 
             {/* Bottom hint */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground font-mono bg-card/60 backdrop-blur-sm px-3 py-1 rounded-full border border-border">
