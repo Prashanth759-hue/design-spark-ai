@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import ChatMessage, { Message } from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
@@ -11,6 +12,7 @@ import { parseDesignParams } from "@/lib/parseDesignParams";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeModule, setActiveModule] = useState("requirements");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -111,6 +113,12 @@ const Index = () => {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/drive")}
+              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-accent text-accent-foreground hover:bg-accent/80 transition-colors font-semibold shadow-sm"
+            >
+              🏎 Drive Mode
+            </button>
             <button
               onClick={() => setShowConfigurator(true)}
               className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm"
