@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
 import ChatMessage, { Message } from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
@@ -10,6 +11,8 @@ import { CarConfigurator } from "@/components/CarConfigurator";
 import { streamChat, ChatMsg } from "@/lib/streamChat";
 import { parseDesignParams } from "@/lib/parseDesignParams";
 import { toast } from "@/hooks/use-toast";
+import { useRef, useMemo } from "react";
+import { LogOut, Car, Building2, Cog, CircuitBoard } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -31,6 +34,11 @@ const Index = () => {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   const handleSend = async (content: string, module?: string) => {
     const mod = module || activeModule;
     if (module) setActiveModule(module);
@@ -46,7 +54,6 @@ const Index = () => {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-    // Build conversation history for AI
     const history: ChatMsg[] = messages.map((m) => ({
       role: m.role,
       content: m.content,
@@ -108,37 +115,47 @@ const Index = () => {
         <header className="flex items-center justify-between h-14 px-4 border-b border-border bg-card shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">AI Design Assistant</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-              v1.0
-            </span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">v2.0</span>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/drive")}
-              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-accent text-accent-foreground hover:bg-accent/80 transition-colors font-semibold shadow-sm"
-            >
-              🏎 Drive Mode
+          <div className="flex items-center gap-2">
+            {/* Domain simulators */}
+            <button onClick={() => navigate("/drive")}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
+              <Car className="w-3 h-3" /> Drive
             </button>
-            <button
-              onClick={() => setShowConfigurator(true)}
-              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm"
-            >
-              🚗 3D Configurator
+            <button onClick={() => navigate("/building")}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
+              <Building2 className="w-3 h-3" /> Building
             </button>
-            <button
-              onClick={() => setShow3D(!show3D)}
+            <button onClick={() => navigate("/machine")}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
+              <Cog className="w-3 h-3" /> Machine
+            </button>
+            <button onClick={() => navigate("/circuit")}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
+              <CircuitBoard className="w-3 h-3" /> Circuit
+            </button>
+
+            <div className="w-px h-5 bg-border mx-1" />
+
+            <button onClick={() => setShowConfigurator(true)}
+              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm">
+              🎨 3D Configurator
+            </button>
+            <button onClick={() => setShow3D(!show3D)}
               className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${
-                show3D
-                  ? "bg-primary/20 text-primary"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
-              }`}
-            >
+                show3D ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}>
               3D View
             </button>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-glow" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
               <span className="text-[10px] text-muted-foreground">Online</span>
             </div>
+            <button onClick={handleSignOut}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Sign Out">
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
         </header>
 

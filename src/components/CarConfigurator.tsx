@@ -2,7 +2,9 @@ import { useState, Suspense, useCallback, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows, Grid, PerspectiveCamera } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun } from "lucide-react";
+import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun, Car, Building2, Cog, CircuitBoard, Wind, Activity, Zap as ZapLucide, Battery } from "lucide-react";
+import { BuildingStructure } from "@/components/3d/BuildingStructure";
+import { DesignParams } from "@/lib/parseDesignParams";
 import * as THREE from "three";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { LuxurySedan } from "@/components/3d/LuxurySedan";
@@ -111,6 +113,15 @@ const ENV_PRESETS: { id: EnvPreset; label: string; desc: string; bgColor: string
   { id: "city", label: "City Street", desc: "Downtown backdrop", bgColor: "#121620" },
 ];
 
+export type ConfigDomain = "vehicle" | "building" | "machine" | "circuit";
+
+const DOMAIN_TABS: { id: ConfigDomain; icon: any; label: string }[] = [
+  { id: "vehicle", icon: Car, label: "Vehicles" },
+  { id: "building", icon: Building2, label: "Buildings" },
+  { id: "machine", icon: Cog, label: "Machines" },
+  { id: "circuit", icon: CircuitBoard, label: "Circuits" },
+];
+
 type PanelTab = "model" | "paint" | "wheels" | "style" | "env";
 
 /* ─── Model transition animation ─── */
@@ -196,6 +207,97 @@ function Scene({ model, config, autoRotate, envPreset, bgColor }: {
   );
 }
 
+/* ─── Building Preview Scene ─── */
+function BuildingPreviewScene({ floors, envPreset, bgColor }: { floors: number; envPreset: EnvPreset; bgColor: string }) {
+  const buildingParams: DesignParams = {
+    structureType: "building", beamLength: 4, beamHeight: 0.3, beamWidth: 0.6,
+    columnHeight: floors * 0.3, columnWidth: 0.25, materialColor: "#22d3ee",
+    columnColor: "#0e7490", baseColor: "#164e63", label: "Building",
+  };
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[6, 3, 6]} fov={36} />
+      <color attach="background" args={[bgColor]} />
+      <Environment preset={envPreset} background={false} />
+      <directionalLight position={[8, 10, 6]} intensity={2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      <ambientLight intensity={0.12} />
+      <hemisphereLight args={["#87ceeb", "#2a1a0a", 0.3]} />
+      <BuildingStructure params={buildingParams} />
+      <ContactShadows position={[0, -1.1, 0]} opacity={0.5} scale={14} blur={3} />
+      <Grid position={[0, -1.02, 0]} args={[20, 20]} cellSize={0.6} cellThickness={0.4}
+        cellColor="#1e3a5f" sectionSize={3} sectionThickness={0.8} sectionColor="#22d3ee"
+        fadeDistance={16} fadeStrength={1} infiniteGrid />
+      <OrbitControls enableDamping dampingFactor={0.08} minDistance={3} maxDistance={14} />
+    </>
+  );
+}
+
+/* ─── Machine Preview Scene ─── */
+function RotatingGear({ position, radius, speed, color }: { position: [number, number, number]; radius: number; speed: number; color: string }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, d) => { if (ref.current) ref.current.rotation.y += d * speed; });
+  return (
+    <group ref={ref} position={position}>
+      <mesh castShadow><cylinderGeometry args={[radius, radius, 0.2, 32]} /><meshPhysicalMaterial color={color} metalness={0.85} roughness={0.15} /></mesh>
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        return <mesh key={i} position={[Math.cos(a) * radius * 0.9, 0, Math.sin(a) * radius * 0.9]} castShadow>
+          <boxGeometry args={[radius * 0.15, 0.22, radius * 0.2]} /><meshPhysicalMaterial color={color} metalness={0.85} roughness={0.15} />
+        </mesh>;
+      })}
+    </group>
+  );
+}
+
+function MachinePreviewScene({ rpm, envPreset, bgColor }: { rpm: number; envPreset: EnvPreset; bgColor: string }) {
+  const speed = rpm / 300;
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 4, 6]} fov={40} />
+      <color attach="background" args={[bgColor]} />
+      <Environment preset={envPreset} background={false} />
+      <directionalLight position={[8, 10, 6]} intensity={2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      <ambientLight intensity={0.12} />
+      <RotatingGear position={[-1.2, 0, 0]} radius={0.6} speed={speed} color="#22d3ee" />
+      <RotatingGear position={[1, 0, 0]} radius={1} speed={-speed * 0.6} color="#f59e0b" />
+      <mesh position={[0, -0.3, 0]} receiveShadow><boxGeometry args={[5, 0.1, 2]} /><meshPhysicalMaterial color="#334155" metalness={0.5} roughness={0.5} /></mesh>
+      <ContactShadows position={[0, -0.35, 0]} opacity={0.5} scale={10} blur={3} />
+      <OrbitControls enableDamping dampingFactor={0.08} minDistance={3} maxDistance={14} />
+    </>
+  );
+}
+
+/* ─── Circuit Preview Scene (3D PCB) ─── */
+function CircuitPreviewScene({ envPreset, bgColor }: { envPreset: EnvPreset; bgColor: string }) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame((_, d) => { if (groupRef.current) groupRef.current.rotation.y += d * 0.15; });
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 5, 5]} fov={40} />
+      <color attach="background" args={[bgColor]} />
+      <Environment preset={envPreset} background={false} />
+      <directionalLight position={[8, 10, 6]} intensity={2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      <ambientLight intensity={0.15} />
+      <group ref={groupRef}>
+        {/* PCB Board */}
+        <mesh receiveShadow castShadow><boxGeometry args={[4, 0.1, 3]} /><meshPhysicalMaterial color="#1a3a2a" roughness={0.7} /></mesh>
+        {/* Components */}
+        <mesh position={[-1, 0.2, -0.5]} castShadow><boxGeometry args={[0.4, 0.3, 0.2]} /><meshPhysicalMaterial color="#1e293b" metalness={0.3} roughness={0.5} /></mesh>
+        <mesh position={[0.5, 0.15, 0.3]} castShadow><cylinderGeometry args={[0.15, 0.15, 0.2, 16]} /><meshPhysicalMaterial color="#64748b" metalness={0.8} roughness={0.2} /></mesh>
+        <mesh position={[-0.5, 0.15, 0.8]} castShadow><boxGeometry args={[0.6, 0.15, 0.3]} /><meshPhysicalMaterial color="#334155" metalness={0.5} roughness={0.3} /></mesh>
+        {/* LED */}
+        <mesh position={[1, 0.2, -0.8]} castShadow><sphereGeometry args={[0.1, 16, 16]} /><meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={3} /></mesh>
+        {/* Traces */}
+        {[[-1.5, 0.06, 0], [0, 0.06, 0.6], [1, 0.06, -0.3]].map((p, i) => (
+          <mesh key={i} position={p as [number, number, number]}><boxGeometry args={[2.5, 0.02, 0.05]} /><meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={1} /></mesh>
+        ))}
+      </group>
+      <ContactShadows position={[0, -0.1, 0]} opacity={0.5} scale={10} blur={3} />
+      <OrbitControls enableDamping dampingFactor={0.08} minDistance={3} maxDistance={14} />
+    </>
+  );
+}
+
 interface CarConfiguratorProps {
   visible: boolean;
   onClose: () => void;
@@ -210,6 +312,9 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
   const [panelOpen, setPanelOpen] = useState(true);
   const [envPreset, setEnvPreset] = useState<EnvPreset>("studio");
   const [envBgColor, setEnvBgColor] = useState("#1a1a2e");
+  const [activeDomain, setActiveDomain] = useState<ConfigDomain>("vehicle");
+  const [buildingFloors, setBuildingFloors] = useState(5);
+  const [machineRPM, setMachineRPM] = useState(500);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const update = useCallback((patch: Partial<CarConfig>) => {
@@ -252,9 +357,32 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
           <div className="flex-1 relative">
             <Canvas shadows gl={{ antialias: true, toneMapping: 4, toneMappingExposure: 1.15, preserveDrawingBuffer: true }}>
               <Suspense fallback={null}>
-                <Scene model={selectedModel} config={config} autoRotate={autoRotate} envPreset={envPreset} bgColor={envBgColor} />
+                {activeDomain === "vehicle" ? (
+                  <Scene model={selectedModel} config={config} autoRotate={autoRotate} envPreset={envPreset} bgColor={envBgColor} />
+                ) : activeDomain === "building" ? (
+                  <BuildingPreviewScene floors={buildingFloors} envPreset={envPreset} bgColor={envBgColor} />
+                ) : activeDomain === "machine" ? (
+                  <MachinePreviewScene rpm={machineRPM} envPreset={envPreset} bgColor={envBgColor} />
+                ) : (
+                  <CircuitPreviewScene envPreset={envPreset} bgColor={envBgColor} />
+                )}
               </Suspense>
             </Canvas>
+
+            {/* Domain selector */}
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 flex gap-1 bg-card/80 backdrop-blur-sm rounded-xl border border-border p-1">
+              {DOMAIN_TABS.map((d) => {
+                const Icon = d.icon;
+                return (
+                  <button key={d.id} onClick={() => setActiveDomain(d.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      activeDomain === d.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}>
+                    <Icon className="w-3 h-3" />{d.label}
+                  </button>
+                );
+              })}
+            </div>
 
             {/* Top bar */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-background/90 to-transparent">
@@ -265,7 +393,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                 </button>
                 <div>
                   <p className="text-sm font-semibold text-foreground">
-                    {CAR_MODELS.find(m => m.id === selectedModel)?.label}
+                    {activeDomain === "vehicle" ? CAR_MODELS.find(m => m.id === selectedModel)?.label : DOMAIN_TABS.find(d => d.id === activeDomain)?.label}
                   </p>
                   <p className="text-[10px] text-muted-foreground font-mono">3D Configurator</p>
                 </div>
@@ -286,8 +414,8 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
               </div>
             </div>
 
-            {/* Specs panel */}
-            <VehicleSpecsPanel model={selectedModel} />
+            {/* Specs panel - only for vehicles */}
+            {activeDomain === "vehicle" && <VehicleSpecsPanel model={selectedModel} />}
 
             {/* Bottom hint */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground font-mono bg-card/60 backdrop-blur-sm px-3 py-1 rounded-full border border-border">
@@ -313,20 +441,101 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                 transition={{ duration: 0.25, ease: "easeInOut" }}
                 className="h-full bg-card border-l border-border flex flex-col overflow-hidden shrink-0"
               >
-                {/* Tabs */}
-                <div className="flex border-b border-border shrink-0">
-                  {tabs.map((tab) => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                      className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors ${activeTab === tab.id ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground hover:text-foreground"}`}>
-                      {tab.icon}
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+                {/* Tabs - show vehicle tabs only for vehicle domain */}
+                {activeDomain === "vehicle" ? (
+                  <div className="flex border-b border-border shrink-0">
+                    {tabs.map((tab) => (
+                      <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-colors ${activeTab === tab.id ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground hover:text-foreground"}`}>
+                        {tab.icon}
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 border-b border-border">
+                    <p className="text-sm font-semibold text-foreground">{DOMAIN_TABS.find(d => d.id === activeDomain)?.label} Controls</p>
+                    <p className="text-[10px] text-muted-foreground">Adjust parameters</p>
+                  </div>
+                )}
 
                 <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-5">
-                  {/* MODEL TAB */}
-                  {activeTab === "model" && (
+                  {/* DOMAIN-SPECIFIC CONTROLS */}
+                  {activeDomain === "building" && (
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-foreground">Floors</span>
+                          <span className="text-[11px] font-mono font-semibold text-foreground">{buildingFloors}</span>
+                        </div>
+                        <input type="range" min={2} max={15} step={1} value={buildingFloors}
+                          onChange={(e) => setBuildingFloors(parseInt(e.target.value))}
+                          className="w-full accent-primary h-1.5 rounded-full cursor-pointer" />
+                      </div>
+                      <div className="border-t border-border pt-3 space-y-1.5">
+                        {[
+                          { label: "Height", value: `${(buildingFloors * 3.2).toFixed(1)}m` },
+                          { label: "Structure", value: "Reinforced Concrete" },
+                          { label: "Safety Factor", value: "2.0x ✓" },
+                        ].map(item => (
+                          <div key={item.label} className="flex items-center justify-between">
+                            <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                            <span className="text-[10px] font-mono font-semibold text-foreground">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">💡 Open the <strong>Building Simulator</strong> from the main page for full physics simulation with wind, earthquake, and collapse.</p>
+                    </div>
+                  )}
+
+                  {activeDomain === "machine" && (
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-foreground">Motor RPM</span>
+                          <span className="text-[11px] font-mono font-semibold text-foreground">{machineRPM}</span>
+                        </div>
+                        <input type="range" min={100} max={3000} step={50} value={machineRPM}
+                          onChange={(e) => setMachineRPM(parseInt(e.target.value))}
+                          className="w-full accent-primary h-1.5 rounded-full cursor-pointer" />
+                      </div>
+                      <div className="border-t border-border pt-3 space-y-1.5">
+                        {[
+                          { label: "Output RPM", value: `${Math.round(machineRPM * 0.6)}` },
+                          { label: "Gear Ratio", value: "2:1" },
+                          { label: "Torque", value: `${(machineRPM * 0.2).toFixed(1)} Nm` },
+                        ].map(item => (
+                          <div key={item.label} className="flex items-center justify-between">
+                            <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                            <span className="text-[10px] font-mono font-semibold text-foreground">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">💡 Open the <strong>Machine Simulator</strong> for full gear ratio, torque, and efficiency controls.</p>
+                    </div>
+                  )}
+
+                  {activeDomain === "circuit" && (
+                    <div className="space-y-4">
+                      <div className="border-t border-border pt-3 space-y-1.5">
+                        {[
+                          { label: "Components", value: "Resistor, LED, Battery" },
+                          { label: "Voltage", value: "9V" },
+                          { label: "Resistance", value: "320Ω" },
+                          { label: "Current", value: "28.1 mA" },
+                        ].map(item => (
+                          <div key={item.label} className="flex items-center justify-between">
+                            <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                            <span className="text-[10px] font-mono font-semibold text-foreground">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">💡 Open the <strong>Circuit Simulator</strong> for interactive Ohm's law, current flow, and overload detection.</p>
+                    </div>
+                  )}
+
+                  {/* VEHICLE TABS */}
+                  {activeDomain === "vehicle" && activeTab === "model" && (
                     <div className="space-y-3">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Select Vehicle</p>
                       {CAR_MODELS.map((m) => (
@@ -343,7 +552,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                   )}
 
                   {/* PAINT TAB */}
-                  {activeTab === "paint" && (
+                  {activeDomain === "vehicle" && activeTab === "paint" && (
                     <div className="space-y-5">
                       <div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-3">Body Color</p>
@@ -412,7 +621,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                   )}
 
                   {/* WHEELS TAB */}
-                  {activeTab === "wheels" && (
+                  {activeDomain === "vehicle" && activeTab === "wheels" && (
                     <div className="space-y-5">
                       <div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-3">Rim Color</p>
@@ -445,7 +654,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                   )}
 
                   {/* STYLE TAB */}
-                  {activeTab === "style" && (
+                  {activeDomain === "vehicle" && activeTab === "style" && (
                     <div className="space-y-5">
                       <div>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-3">Window Tint</p>
@@ -501,7 +710,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                   )}
 
                   {/* ENVIRONMENT TAB */}
-                  {activeTab === "env" && (
+                  {activeDomain === "vehicle" && activeTab === "env" && (
                     <div className="space-y-3">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Environment</p>
                       {ENV_PRESETS.map((env) => (
