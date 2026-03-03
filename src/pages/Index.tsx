@@ -12,7 +12,8 @@ import { streamChat, ChatMsg } from "@/lib/streamChat";
 import { parseDesignParams } from "@/lib/parseDesignParams";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { LogOut, Car, Building2, Cog, CircuitBoard } from "lucide-react";
+import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler } from "lucide-react";
+import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -22,6 +23,9 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [showConfigurator, setShowConfigurator] = useState(false);
+  const [showDrawing, setShowDrawing] = useState(false);
+  const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit">("vehicle");
+  const [drawingParams, setDrawingParams] = useState<Record<string, number | string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const designParams = useMemo(() => parseDesignParams(messages), [messages]);
@@ -88,6 +92,48 @@ const Index = () => {
       },
       onDone: () => {
         setIsLoading(false);
+        // Parse AI response for engineering drawing data
+        const lower = assistantContent.toLowerCase();
+        if (lower.includes("wheelbase") || lower.includes("vehicle") || lower.includes("car design")) {
+          setDrawingType("vehicle");
+          const wbMatch = assistantContent.match(/wheelbase[:\s]*(\d+)/i);
+          const twMatch = assistantContent.match(/track\s*width[:\s]*(\d+)/i);
+          setDrawingParams({
+            wheelbase: wbMatch ? parseInt(wbMatch[1]) : 2850,
+            trackWidth: twMatch ? parseInt(twMatch[1]) : 1580,
+            bodyLength: 4500, bodyHeight: 1200,
+          });
+          setShowDrawing(true);
+        } else if (lower.includes("floor") && (lower.includes("building") || lower.includes("storey"))) {
+          setDrawingType("building");
+          const flMatch = assistantContent.match(/(\d+)\s*(?:floor|stor)/i);
+          setDrawingParams({
+            floors: flMatch ? parseInt(flMatch[1]) : 5,
+            height: (flMatch ? parseInt(flMatch[1]) : 5) * 3200,
+            width: 15000,
+          });
+          setShowDrawing(true);
+        } else if (lower.includes("rpm") || lower.includes("gear") || lower.includes("torque")) {
+          setDrawingType("machine");
+          const rpmMatch = assistantContent.match(/(\d+)\s*rpm/i);
+          const grMatch = assistantContent.match(/gear\s*ratio[:\s]*(\d+\.?\d*)/i);
+          setDrawingParams({
+            rpm: rpmMatch ? parseInt(rpmMatch[1]) : 500,
+            gearRatio: grMatch ? parseFloat(grMatch[1]) : 2,
+            teeth1: 12, teeth2: 24, centerDistance: 90, module: 2.5, material: "42CrMo4",
+          });
+          setShowDrawing(true);
+        } else if (lower.includes("circuit") || lower.includes("resistor") || lower.includes("voltage")) {
+          setDrawingType("circuit");
+          const vMatch = assistantContent.match(/(\d+\.?\d*)\s*v(?:olt)?/i);
+          const rMatch = assistantContent.match(/(\d+)\s*[ωΩ]/i);
+          setDrawingParams({
+            voltage: vMatch ? parseFloat(vMatch[1]) : 9,
+            r1: rMatch ? parseInt(rMatch[1]) : 100,
+            current: "28.1",
+          });
+          setShowDrawing(true);
+        }
       },
       onError: (error) => {
         toast({
@@ -133,14 +179,24 @@ const Index = () => {
             </button>
             <button onClick={() => navigate("/circuit")}
               className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
-              <CircuitBoard className="w-3 h-3" /> Circuit
+            <CircuitBoard className="w-3 h-3" /> Circuit
             </button>
 
             <div className="w-px h-5 bg-border mx-1" />
 
+            <button onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-accent/30 text-accent-foreground hover:bg-accent/50 transition-colors font-semibold">
+              <LayoutDashboard className="w-3 h-3" /> Dashboard
+            </button>
             <button onClick={() => setShowConfigurator(true)}
               className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm">
               🎨 3D Configurator
+            </button>
+            <button onClick={() => setShowDrawing(!showDrawing)}
+              className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded transition-colors ${
+                showDrawing ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}>
+              <Ruler className="w-3 h-3" /> Drawing
             </button>
             <button onClick={() => setShow3D(!show3D)}
               className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${
@@ -172,6 +228,12 @@ const Index = () => {
                   ))}
                   {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
                     <TypingIndicator />
+                  )}
+                  {/* Engineering Drawing - auto-appears after relevant AI responses */}
+                  {showDrawing && messages.length > 0 && (
+                    <div className="px-4 py-3">
+                      <EngineeringDrawing type={drawingType} params={drawingParams} />
+                    </div>
                   )}
                   <div ref={messagesEndRef} />
                 </div>

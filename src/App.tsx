@@ -10,6 +10,7 @@ import DrivingSimulator from "./pages/DrivingSimulator";
 import BuildingSimulator from "./pages/BuildingSimulator";
 import MachineSimulator from "./pages/MachineSimulator";
 import CircuitSimulator from "./pages/CircuitSimulator";
+import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,7 @@ const App = () => {
                 <Route path="/building" element={<BuildingSimulator />} />
                 <Route path="/machine" element={<MachineSimulator />} />
                 <Route path="/circuit" element={<CircuitSimulator />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/auth" element={<Auth />} />
               </>
             ) : (
