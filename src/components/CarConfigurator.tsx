@@ -2,7 +2,7 @@ import { useState, Suspense, useCallback, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, ContactShadows, Grid, PerspectiveCamera } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun, Car, Building2, Cog, CircuitBoard, Wind, Activity, Zap as ZapLucide, Battery } from "lucide-react";
+import { RotateCcw, Palette, Settings2, Layers, ZapIcon, ChevronRight, ChevronLeft, Camera, Sun, Car, Building2, Cog, CircuitBoard, Wind, Activity, Zap as ZapLucide, Battery, Save } from "lucide-react";
 import { BuildingStructure } from "@/components/3d/BuildingStructure";
 import { DesignParams } from "@/lib/parseDesignParams";
 import * as THREE from "three";
@@ -13,7 +13,10 @@ import { SUVCar } from "@/components/3d/SUVCar";
 import { PickupTruck } from "@/components/3d/PickupTruck";
 import { Convertible } from "@/components/3d/Convertible";
 import { VanVehicle } from "@/components/3d/VanVehicle";
+import { Motorcycle } from "@/components/3d/Motorcycle";
+import { BusVehicle } from "@/components/3d/BusVehicle";
 import { VehicleSpecsPanel } from "@/components/VehicleSpecsPanel";
+import { useDesigns } from "@/hooks/useDesigns";
 
 export interface CarConfig {
   bodyColor: string;
@@ -27,7 +30,7 @@ export interface CarConfig {
   bodyKit: "stock" | "aero" | "carbon";
 }
 
-export type CarModel = "sports" | "sedan" | "muscle" | "suv" | "pickup" | "convertible" | "van";
+export type CarModel = "sports" | "sedan" | "muscle" | "suv" | "pickup" | "convertible" | "van" | "motorcycle" | "bus";
 
 export type EnvPreset = "studio" | "night" | "sunset" | "dawn" | "warehouse" | "city";
 
@@ -61,6 +64,8 @@ const VEHICLE_SPECS: Record<CarModel, VehicleSpecs> = {
   pickup: { hp: 450, torque: "690 Nm", zeroToSixty: "5.1s", weight: "2,680 kg", dimensions: "5.89 × 2.03 × 1.92 m", engine: "V8 6.2L", topSpeed: "210 km/h" },
   convertible: { hp: 455, torque: "530 Nm", zeroToSixty: "3.4s", weight: "1,585 kg", dimensions: "4.38 × 1.86 × 1.26 m", engine: "V8 4.0L Twin-Turbo", topSpeed: "310 km/h" },
   van: { hp: 275, torque: "460 Nm", zeroToSixty: "7.8s", weight: "2,480 kg", dimensions: "5.14 × 1.93 × 1.98 m", engine: "V6 3.5L", topSpeed: "195 km/h" },
+  motorcycle: { hp: 200, torque: "113 Nm", zeroToSixty: "2.6s", weight: "198 kg", dimensions: "2.10 × 0.74 × 1.15 m", engine: "L4 998cc", topSpeed: "299 km/h" },
+  bus: { hp: 350, torque: "1400 Nm", zeroToSixty: "18s", weight: "12,000 kg", dimensions: "12.0 × 2.55 × 3.40 m", engine: "Diesel I6 7.7L", topSpeed: "120 km/h" },
 };
 
 const CAR_MODELS: { id: CarModel; label: string; desc: string }[] = [
@@ -71,6 +76,8 @@ const CAR_MODELS: { id: CarModel; label: string; desc: string }[] = [
   { id: "pickup", label: "Pickup Truck", desc: "Heavy-duty hauler" },
   { id: "convertible", label: "Convertible", desc: "Open-top roadster" },
   { id: "van", label: "Van", desc: "Spacious people mover" },
+  { id: "motorcycle", label: "Motorcycle", desc: "Sport bike racer" },
+  { id: "bus", label: "Bus", desc: "City transit vehicle" },
 ];
 
 const BODY_COLORS = [
@@ -151,7 +158,9 @@ function ModelTransition({ model, config, autoRotate }: { model: CarModel; confi
   const CarComponent = {
     sports: SportsCar, sedan: LuxurySedan, muscle: MuscleCar,
     suv: SUVCar, pickup: PickupTruck, convertible: Convertible, van: VanVehicle,
-  }[currentModel];
+    motorcycle: ({ config, autoRotate }: any) => <Motorcycle color={config.bodyColor} autoRotate={autoRotate} />,
+    bus: ({ config, autoRotate }: any) => <BusVehicle color={config.bodyColor} autoRotate={autoRotate} />,
+  }[currentModel] as any;
 
   return (
     <group ref={groupRef}>
@@ -316,6 +325,7 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
   const [buildingFloors, setBuildingFloors] = useState(5);
   const [machineRPM, setMachineRPM] = useState(500);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { saveDesign } = useDesigns();
 
   const update = useCallback((patch: Partial<CarConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -399,6 +409,19 @@ export function CarConfigurator({ visible, onClose, initialModel = "sports" }: C
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const domain = activeDomain;
+                    const title = domain === "vehicle" ? CAR_MODELS.find(m => m.id === selectedModel)?.label || selectedModel
+                      : domain === "building" ? `${buildingFloors}-Floor Building`
+                      : domain === "machine" ? `Machine ${machineRPM}RPM`
+                      : "Circuit Design";
+                    saveDesign(domain, title, domain === "vehicle" ? { model: selectedModel, ...config } : domain === "building" ? { floors: buildingFloors } : { rpm: machineRPM });
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-primary/20 border-primary/40 text-primary hover:bg-primary/30 transition-colors backdrop-blur-sm">
+                  <Save className="w-3.5 h-3.5" />
+                  Save
+                </button>
                 <button
                   onClick={handleScreenshot}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border bg-card/80 border-border text-muted-foreground hover:text-foreground transition-colors backdrop-blur-sm">

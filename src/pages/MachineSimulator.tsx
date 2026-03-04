@@ -2,9 +2,11 @@ import { useState, useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { motion } from "framer-motion";
-import { ArrowLeft, Gauge, Zap, Settings2, BarChart3 } from "lucide-react";
+import { ArrowLeft, Gauge, Zap, Settings2, BarChart3, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
+import { PerformanceChart } from "@/components/charts/PerformanceChart";
+import { useDesigns } from "@/hooks/useDesigns";
 
 /* ─── Gear Tooth Profile ─── */
 function Gear({ radius, teeth, thickness, position, rotationSpeed, color, direction = 1 }: {
@@ -151,11 +153,16 @@ const MachineSimulator = () => {
   const [motorRPM, setMotorRPM] = useState(500);
   const [loadResistance, setLoadResistance] = useState(20);
   const [gearRatio, setGearRatio] = useState(2);
+  const { saveDesign } = useDesigns();
 
   const outputRPM = motorRPM / gearRatio * (1 - loadResistance / 200);
   const torque = motorRPM * gearRatio * 0.1 * (1 + loadResistance / 100);
   const power = (torque * outputRPM * 2 * Math.PI) / 60000;
   const efficiency = Math.max(0, 100 - loadResistance * 0.5 - (gearRatio - 1) * 5);
+
+  const handleSave = () => {
+    saveDesign("machine", `Gear System ${gearRatio}:1`, { motorRPM, loadResistance, gearRatio });
+  };
 
   return (
     <div className="w-screen h-screen bg-background relative overflow-hidden flex">
@@ -269,6 +276,20 @@ const MachineSimulator = () => {
               <span>0%</span><span>100%</span>
             </div>
           </div>
+
+          {/* Real-time Charts */}
+          <div className="border-t border-border pt-4 space-y-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Live Performance</p>
+            <PerformanceChart title="Output RPM" unit="RPM" value={outputRPM} maxValue={3000} color="hsl(var(--primary))" />
+            <PerformanceChart title="Torque" unit="Nm" value={torque} maxValue={1000} color="hsl(25 95% 53%)" />
+            <PerformanceChart title="Power" unit="kW" value={power} maxValue={50} color="hsl(45 93% 47%)" />
+          </div>
+
+          {/* Save button */}
+          <button onClick={handleSave}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors mt-4">
+            <Save className="w-3.5 h-3.5" /> Save Design
+          </button>
         </div>
       </motion.div>
     </div>
