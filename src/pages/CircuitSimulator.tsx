@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, AlertTriangle, Battery, CircleDot } from "lucide-react";
+import { ArrowLeft, Zap, AlertTriangle, Battery, CircleDot, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PerformanceChart } from "@/components/charts/PerformanceChart";
+import { useDesigns } from "@/hooks/useDesigns";
 
 /* ─── Circuit Component Types ─── */
 interface CircuitComponent {
@@ -52,6 +54,7 @@ const CircuitSimulator = () => {
   const [resistance1, setResistance1] = useState(100);
   const [resistance2, setResistance2] = useState(220);
   const [circuitType, setCircuitType] = useState<"series" | "parallel">("series");
+  const { saveDesign } = useDesigns();
 
   // Ohm's law calculations
   const totalResistance = circuitType === "series"
@@ -307,6 +310,19 @@ const CircuitSimulator = () => {
               <p className="text-muted-foreground mt-1">P = V × I = {(power * 1000).toFixed(2)}mW</p>
             </div>
           </div>
+
+          {/* Real-time Charts */}
+          <div className="border-t border-border pt-4 space-y-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Live Performance</p>
+            <PerformanceChart title="Current" unit="mA" value={current * 1000} maxValue={150} color="hsl(var(--primary))" />
+            <PerformanceChart title="Power" unit="mW" value={power * 1000} maxValue={500} color="hsl(45 93% 47%)" />
+          </div>
+
+          {/* Save button */}
+          <button onClick={() => saveDesign("circuit", `${circuitType} Circuit ${voltage}V`, { voltage, resistance1, resistance2, circuitType })}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors mt-4">
+            <Save className="w-3.5 h-3.5" /> Save Design
+          </button>
         </div>
       </motion.div>
     </div>

@@ -2,9 +2,11 @@ import { useState, useRef, useCallback, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { motion } from "framer-motion";
-import { ArrowLeft, Wind, Activity, Layers, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Wind, Activity, Layers, AlertTriangle, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
+import { PerformanceChart } from "@/components/charts/PerformanceChart";
+import { useDesigns } from "@/hooks/useDesigns";
 
 /* ─── Building 3D with stress heatmap ─── */
 function BuildingFrame({
@@ -140,9 +142,14 @@ const BuildingSimulator = () => {
   const [windForce, setWindForce] = useState(0);
   const [earthquakeIntensity, setEarthquakeIntensity] = useState(0);
   const [load, setLoad] = useState(30);
+  const { saveDesign } = useDesigns();
 
   const collapsed = load > 90 || (windForce > 80 && load > 60) || (earthquakeIntensity > 70 && load > 50);
   const stressLevel = Math.min(100, load + windForce * 0.3 + earthquakeIntensity * 0.4);
+
+  const handleSave = () => {
+    saveDesign("building", `${floors}-Floor Building`, { floors, windForce, earthquakeIntensity, load });
+  };
 
   return (
     <div className="w-screen h-screen bg-background relative overflow-hidden flex">
@@ -270,6 +277,20 @@ const BuildingSimulator = () => {
               ))}
             </div>
           </div>
+
+          {/* Real-time Charts */}
+          <div className="border-t border-border pt-4 space-y-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Live Performance</p>
+            <PerformanceChart title="Stress Level" unit="%" value={stressLevel} maxValue={100} color="hsl(0 84% 60%)" />
+            <PerformanceChart title="Wind Sway" unit="mm" value={windForce * 0.8} maxValue={80} color="hsl(199 89% 48%)" />
+            <PerformanceChart title="Seismic Accel." unit="g" value={earthquakeIntensity * 0.01} maxValue={1} color="hsl(45 93% 47%)" />
+          </div>
+
+          {/* Save button */}
+          <button onClick={handleSave}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors mt-4">
+            <Save className="w-3.5 h-3.5" /> Save Design
+          </button>
         </div>
       </motion.div>
     </div>

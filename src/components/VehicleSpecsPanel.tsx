@@ -20,6 +20,8 @@ const VEHICLE_SPECS: Record<CarModel, VehicleSpecs> = {
   pickup: { hp: 450, torque: "690 Nm", zeroToSixty: "5.1s", weight: "2,680 kg", dimensions: "5.89 × 2.03 × 1.92 m", engine: "V8 6.2L", topSpeed: "210 km/h" },
   convertible: { hp: 455, torque: "530 Nm", zeroToSixty: "3.4s", weight: "1,585 kg", dimensions: "4.38 × 1.86 × 1.26 m", engine: "V8 4.0L Twin-Turbo", topSpeed: "310 km/h" },
   van: { hp: 275, torque: "460 Nm", zeroToSixty: "7.8s", weight: "2,480 kg", dimensions: "5.14 × 1.93 × 1.98 m", engine: "V6 3.5L", topSpeed: "195 km/h" },
+  motorcycle: { hp: 200, torque: "113 Nm", zeroToSixty: "2.6s", weight: "198 kg", dimensions: "2.10 × 0.74 × 1.15 m", engine: "L4 998cc", topSpeed: "299 km/h" },
+  bus: { hp: 350, torque: "1400 Nm", zeroToSixty: "18s", weight: "12,000 kg", dimensions: "12.0 × 2.55 × 3.40 m", engine: "Diesel I6 7.7L", topSpeed: "120 km/h" },
 };
 
 const SPEC_ITEMS = [
