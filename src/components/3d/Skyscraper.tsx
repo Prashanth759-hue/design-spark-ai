@@ -8,68 +8,114 @@ export function Skyscraper({ floors = 20, color = "#64748b", autoRotate = true }
 }) {
   const groupRef = useRef<THREE.Group>(null);
   useFrame((_, d) => {
-    if (groupRef.current && autoRotate) groupRef.current.rotation.y += d * 0.06;
+    if (groupRef.current && autoRotate) groupRef.current.rotation.y += d * 0.04;
   });
 
-  const floorH = 0.18;
+  const floorH = 0.16;
   const totalH = floors * floorH;
-  const baseW = 1.2;
-  const baseD = 0.9;
+  const baseW = 1.3;
+  const baseD = 1.0;
   const baseY = -totalH / 2;
 
-  // Tapered design - narrows toward top
-  const getWidth = (f: number) => baseW * (1 - f / floors * 0.2);
-  const getDepth = (f: number) => baseD * (1 - f / floors * 0.15);
+  // Setback taper for realism
+  const getWidth = (f: number) => {
+    const ratio = f / floors;
+    if (ratio > 0.85) return baseW * 0.6; // Crown
+    if (ratio > 0.7) return baseW * 0.75;
+    return baseW * (1 - ratio * 0.15);
+  };
+  const getDepth = (f: number) => {
+    const ratio = f / floors;
+    if (ratio > 0.85) return baseD * 0.6;
+    if (ratio > 0.7) return baseD * 0.75;
+    return baseD * (1 - ratio * 0.12);
+  };
 
   return (
     <group ref={groupRef}>
-      {/* Foundation */}
-      <RoundedBox args={[baseW * 1.4, 0.15, baseD * 1.4]} radius={0.03}
-        position={[0, baseY - 0.08, 0]} receiveShadow>
-        <meshPhysicalMaterial color="#44403c" metalness={0.2} roughness={0.8} />
+      {/* Foundation / podium */}
+      <RoundedBox args={[baseW * 1.5, 0.2, baseD * 1.5]} radius={0.04}
+        position={[0, baseY - 0.1, 0]} receiveShadow castShadow>
+        <meshPhysicalMaterial color="#44403c" metalness={0.25} roughness={0.75} />
       </RoundedBox>
+      {/* Podium detail */}
+      <mesh position={[0, baseY + 0.02, 0]} castShadow>
+        <boxGeometry args={[baseW * 1.3, 0.04, baseD * 1.3]} />
+        <meshPhysicalMaterial color="#525252" metalness={0.3} roughness={0.6} />
+      </mesh>
 
-      {/* Floor slabs & glass curtain wall */}
+      {/* Floor slabs & curtain wall */}
       {Array.from({ length: floors }).map((_, f) => {
         const y = baseY + f * floorH;
         const w = getWidth(f);
         const d = getDepth(f);
+        const isSetback = (f === Math.floor(floors * 0.7)) || (f === Math.floor(floors * 0.85));
+        const ratio = f / floors;
+
+        // Glass tint varies by height
+        const glassColor = ratio > 0.7 ? "#93c5fd" : ratio > 0.4 ? "#60a5fa" : "#3b82f6";
+        const glassOpacity = 0.75 + ratio * 0.15;
+
         return (
           <group key={f}>
-            {/* Slab */}
+            {/* Slab - thicker at setback levels */}
             <mesh position={[0, y + floorH, 0]} castShadow>
-              <boxGeometry args={[w, 0.02, d]} />
-              <meshPhysicalMaterial color={color} metalness={0.4} roughness={0.5} />
+              <boxGeometry args={[w + 0.02, isSetback ? 0.035 : 0.018, d + 0.02]} />
+              <meshPhysicalMaterial color={color} metalness={0.5} roughness={0.4} />
             </mesh>
 
-            {/* Glass panels - front & back */}
-            <mesh position={[0, y + floorH / 2 + 0.01, d / 2 + 0.005]}>
-              <boxGeometry args={[w * 0.95, floorH * 0.75, 0.01]} />
-              <meshPhysicalMaterial color="#60a5fa" metalness={0.1} roughness={0.02}
-                transmission={0.4} thickness={0.3} ior={1.5} envMapIntensity={2} opacity={0.8} transparent />
+            {/* Glass curtain wall - all 4 sides */}
+            {/* Front */}
+            <mesh position={[0, y + floorH / 2 + 0.009, d / 2 + 0.006]}>
+              <boxGeometry args={[w * 0.96, floorH * 0.78, 0.008]} />
+              <meshPhysicalMaterial color={glassColor} metalness={0.12} roughness={0.02}
+                transmission={0.45} thickness={0.3} ior={1.52} envMapIntensity={2.5}
+                opacity={glassOpacity} transparent />
             </mesh>
-            <mesh position={[0, y + floorH / 2 + 0.01, -d / 2 - 0.005]}>
-              <boxGeometry args={[w * 0.95, floorH * 0.75, 0.01]} />
-              <meshPhysicalMaterial color="#60a5fa" metalness={0.1} roughness={0.02}
-                transmission={0.4} thickness={0.3} ior={1.5} envMapIntensity={2} opacity={0.8} transparent />
+            {/* Back */}
+            <mesh position={[0, y + floorH / 2 + 0.009, -d / 2 - 0.006]}>
+              <boxGeometry args={[w * 0.96, floorH * 0.78, 0.008]} />
+              <meshPhysicalMaterial color={glassColor} metalness={0.12} roughness={0.02}
+                transmission={0.45} thickness={0.3} ior={1.52} envMapIntensity={2.5}
+                opacity={glassOpacity} transparent />
+            </mesh>
+            {/* Left */}
+            <mesh position={[w / 2 + 0.006, y + floorH / 2 + 0.009, 0]}>
+              <boxGeometry args={[0.008, floorH * 0.78, d * 0.96]} />
+              <meshPhysicalMaterial color={glassColor} metalness={0.12} roughness={0.02}
+                transmission={0.45} thickness={0.3} ior={1.52} envMapIntensity={2.5}
+                opacity={glassOpacity} transparent />
+            </mesh>
+            {/* Right */}
+            <mesh position={[-w / 2 - 0.006, y + floorH / 2 + 0.009, 0]}>
+              <boxGeometry args={[0.008, floorH * 0.78, d * 0.96]} />
+              <meshPhysicalMaterial color={glassColor} metalness={0.12} roughness={0.02}
+                transmission={0.45} thickness={0.3} ior={1.52} envMapIntensity={2.5}
+                opacity={glassOpacity} transparent />
             </mesh>
 
-            {/* Glass panels - sides */}
-            <mesh position={[w / 2 + 0.005, y + floorH / 2 + 0.01, 0]}>
-              <boxGeometry args={[0.01, floorH * 0.75, d * 0.95]} />
-              <meshPhysicalMaterial color="#60a5fa" metalness={0.1} roughness={0.02}
-                transmission={0.4} thickness={0.3} ior={1.5} envMapIntensity={2} opacity={0.8} transparent />
-            </mesh>
-            <mesh position={[-w / 2 - 0.005, y + floorH / 2 + 0.01, 0]}>
-              <boxGeometry args={[0.01, floorH * 0.75, d * 0.95]} />
-              <meshPhysicalMaterial color="#60a5fa" metalness={0.1} roughness={0.02}
-                transmission={0.4} thickness={0.3} ior={1.5} envMapIntensity={2} opacity={0.8} transparent />
-            </mesh>
+            {/* Vertical mullions - front & back */}
+            {Array.from({ length: Math.max(3, Math.round(w / 0.35)) }).map((_, mi) => {
+              const mx = -w * 0.45 + mi * (w * 0.9 / Math.max(2, Math.round(w / 0.35) - 1));
+              if (Math.abs(mx) > w / 2) return null;
+              return (
+                <g key={`m-${mi}`}>
+                  <mesh position={[mx, y + floorH / 2 + 0.009, d / 2 + 0.01]}>
+                    <boxGeometry args={[0.008, floorH * 0.82, 0.004]} />
+                    <meshPhysicalMaterial color={color} metalness={0.65} roughness={0.25} />
+                  </mesh>
+                  <mesh position={[mx, y + floorH / 2 + 0.009, -d / 2 - 0.01]}>
+                    <boxGeometry args={[0.008, floorH * 0.82, 0.004]} />
+                    <meshPhysicalMaterial color={color} metalness={0.65} roughness={0.25} />
+                  </mesh>
+                </g>
+              );
+            })}
 
-            {/* Mullions */}
-            {[-0.3, 0, 0.3].filter(x => Math.abs(x) < w / 2).map((x, mi) => (
-              <mesh key={mi} position={[x, y + floorH / 2 + 0.01, d / 2 + 0.008]}>
-                <boxGeometry args={[0.01, floorH * 0.8, 0.005]} />
+            {/* Corner columns */}
+            {[[-w/2, -d/2], [w/2, -d/2], [-w/2, d/2], [w/2, d/2]].map(([cx, cz], ci) => (
+              <mesh key={`col-${ci}`} position={[cx, y + floorH / 2 + 0.009, cz]} castShadow>
+                <boxGeometry args={[0.025, floorH * 0.85, 0.025]} />
                 <meshPhysicalMaterial color={color} metalness={0.6} roughness={0.3} />
               </mesh>
             ))}
@@ -77,17 +123,61 @@ export function Skyscraper({ floors = 20, color = "#64748b", autoRotate = true }
         );
       })}
 
-      {/* Crown / antenna */}
-      <mesh position={[0, baseY + totalH + 0.3, 0]} castShadow>
-        <cylinderGeometry args={[0.015, 0.005, 0.6, 8]} />
-        <meshPhysicalMaterial color="#94a3b8" metalness={0.9} roughness={0.1} />
+      {/* Crown / architectural top */}
+      {(() => {
+        const crownY = baseY + totalH;
+        const crownW = getWidth(floors - 1) * 0.7;
+        return (
+          <group>
+            {/* Spire base */}
+            <mesh position={[0, crownY + 0.05, 0]} castShadow>
+              <boxGeometry args={[crownW * 0.5, 0.1, crownW * 0.5]} />
+              <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.2} />
+            </mesh>
+            {/* Spire */}
+            <mesh position={[0, crownY + 0.4, 0]} castShadow>
+              <cylinderGeometry args={[0.012, 0.003, 0.7, 8]} />
+              <meshPhysicalMaterial color="#d4d4d8" metalness={0.92} roughness={0.05} />
+            </mesh>
+            {/* Aviation light */}
+            <mesh position={[0, crownY + 0.75, 0]}>
+              <sphereGeometry args={[0.015, 8, 8]} />
+              <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={3} />
+            </mesh>
+          </group>
+        );
+      })()}
+
+      {/* Entrance canopy */}
+      <mesh position={[0, baseY + 0.06, baseD * 0.75 + 0.15]} castShadow>
+        <boxGeometry args={[baseW * 0.4, 0.02, 0.3]} />
+        <meshPhysicalMaterial color="#d4d4d8" metalness={0.4} roughness={0.3} />
+      </mesh>
+      {/* Entrance glass */}
+      <mesh position={[0, baseY + floorH * 0.5, baseD * 0.5 + 0.008]}>
+        <boxGeometry args={[baseW * 0.3, floorH * 0.85, 0.005]} />
+        <meshPhysicalMaterial color="#93c5fd" transmission={0.6} thickness={0.2} ior={1.52} roughness={0.01} />
       </mesh>
 
-      {/* Ground */}
-      <mesh position={[0, baseY - 0.16, 0]} receiveShadow>
-        <boxGeometry args={[baseW * 3, 0.01, baseD * 3]} />
-        <meshPhysicalMaterial color="#4ade80" metalness={0} roughness={0.95} />
+      {/* Ground / plaza */}
+      <mesh position={[0, baseY - 0.21, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[baseW * 4, baseD * 4]} />
+        <meshPhysicalMaterial color="#374151" metalness={0} roughness={0.92} />
       </mesh>
+
+      {/* Landscaping - small trees */}
+      {[[-baseW, -baseD], [baseW, -baseD], [-baseW, baseD], [baseW, baseD]].map(([tx, tz], i) => (
+        <group key={`tree-${i}`} position={[tx, baseY - 0.12, tz]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.015, 0.02, 0.15, 6]} />
+            <meshPhysicalMaterial color="#5c3d1e" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, 0.12, 0]} castShadow>
+            <sphereGeometry args={[0.08, 8, 8]} />
+            <meshPhysicalMaterial color="#22c55e" roughness={0.85} />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
