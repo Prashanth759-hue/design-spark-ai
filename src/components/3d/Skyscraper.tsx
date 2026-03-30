@@ -99,7 +99,7 @@ export function Skyscraper({ floors = 20, color = "#64748b", autoRotate = true }
               const mx = -w * 0.45 + mi * (w * 0.9 / Math.max(2, Math.round(w / 0.35) - 1));
               if (Math.abs(mx) > w / 2) return null;
               return (
-                <g key={`m-${mi}`}>
+                <group key={`m-${mi}`}>
                   <mesh position={[mx, y + floorH / 2 + 0.009, d / 2 + 0.01]}>
                     <boxGeometry args={[0.008, floorH * 0.82, 0.004]} />
                     <meshPhysicalMaterial color={color} metalness={0.65} roughness={0.25} />
@@ -108,7 +108,7 @@ export function Skyscraper({ floors = 20, color = "#64748b", autoRotate = true }
                     <boxGeometry args={[0.008, floorH * 0.82, 0.004]} />
                     <meshPhysicalMaterial color={color} metalness={0.65} roughness={0.25} />
                   </mesh>
-                </g>
+                </group>
               );
             })}
 
