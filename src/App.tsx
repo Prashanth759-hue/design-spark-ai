@@ -15,6 +15,11 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import RoboticsSimulator from "./pages/RoboticsSimulator";
+import AerospaceSimulator from "./pages/AerospaceSimulator";
+import MarineSimulator from "./pages/MarineSimulator";
+import BiomedicalSimulator from "./pages/BiomedicalSimulator";
+import IndustrialSimulator from "./pages/IndustrialSimulator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +68,11 @@ const App = () => {
                 <Route path="/building" element={<BuildingSimulator />} />
                 <Route path="/machine" element={<MachineSimulator />} />
                 <Route path="/circuit" element={<CircuitSimulator />} />
+                <Route path="/robotics" element={<RoboticsSimulator />} />
+                <Route path="/aerospace" element={<AerospaceSimulator />} />
+                <Route path="/marine" element={<MarineSimulator />} />
+                <Route path="/biomedical" element={<BiomedicalSimulator />} />
+                <Route path="/industrial" element={<IndustrialSimulator />} />
                 <Route path="/dashboard" element={<Dashboard />} />
               </>
             )}
