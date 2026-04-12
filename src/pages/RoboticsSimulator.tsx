@@ -238,7 +238,7 @@ const RoboticsSimulator = () => {
           <div className="p-4">
             <h3 className="text-xs font-semibold text-foreground mb-2">Joint Torque (Nm)</h3>
             <div className="h-32">
-              <PerformanceChart data={torqueData} color="#8b5cf6" label="Torque" unit="Nm" />
+              <PerformanceChart title="Torque" unit="Nm" value={Math.abs(Math.sin(angles[1]) * 45 + 15)} maxValue={60} color="#8b5cf6" />
             </div>
           </div>
         </div>

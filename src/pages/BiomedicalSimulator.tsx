@@ -195,7 +195,7 @@ const BiomedicalSimulator = () => {
                   <Activity className="w-3 h-3 text-rose-500" /> ECG Waveform
                 </h3>
                 <div className="h-32">
-                  <PerformanceChart data={ecgData} color="#e11d48" label="ECG" unit="mV" />
+                  <PerformanceChart title="ECG" unit="mV" value={Math.sin(Date.now() / 200) * 0.5} maxValue={1.5} color="#e11d48" />
                 </div>
               </div>
             </>

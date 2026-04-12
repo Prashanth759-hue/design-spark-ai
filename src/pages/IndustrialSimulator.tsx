@@ -226,7 +226,7 @@ const IndustrialSimulator = () => {
           <div className="p-4">
             <h3 className="text-xs font-semibold text-foreground mb-2">Throughput (units/hr)</h3>
             <div className="h-32">
-              <PerformanceChart data={throughputData} color="#78716c" label="Output" unit="u/hr" />
+              <PerformanceChart title="Output" unit="u/hr" value={Math.round(beltSpeed * 12)} maxValue={80} color="#78716c" />
             </div>
           </div>
         </div>
