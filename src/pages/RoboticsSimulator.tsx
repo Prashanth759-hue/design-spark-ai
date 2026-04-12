@@ -113,16 +113,18 @@ const RoboticsSimulator = () => {
   const [gripperOpen, setGripperOpen] = useState(true);
   const [angles, setAngles] = useState([0, -0.3, -0.5, 0]);
   const timeRef = useRef(0);
+  const frameRef = useRef<number>();
 
   const updateAngles = (idx: number, val: number) => {
     setAngles(prev => { const n = [...prev]; n[idx] = val; return n; });
   };
 
-  // Simple auto-play animation
-  const frameRef = useRef<number>();
-  const animate = () => {
-    timeRef.current += 0.02;
-    const t = timeRef.current;
+  const togglePlay = () => {
+    if (!playing) {
+      setPlaying(true);
+      const run = () => {
+        timeRef.current += 0.02;
+        const t = timeRef.current;
         setAngles([
           Math.sin(t * 0.5) * 1.2,
           -0.3 + Math.sin(t * 0.7) * 0.4,
@@ -142,7 +144,6 @@ const RoboticsSimulator = () => {
     setPlaying(false);
     if (frameRef.current) cancelAnimationFrame(frameRef.current);
     setAngles([0, -0.3, -0.5, 0]);
-    setTorqueData([]);
     timeRef.current = 0;
   };
 
