@@ -112,7 +112,6 @@ const RoboticsSimulator = () => {
   const [playing, setPlaying] = useState(false);
   const [gripperOpen, setGripperOpen] = useState(true);
   const [angles, setAngles] = useState([0, -0.3, -0.5, 0]);
-  const [torqueData, setTorqueData] = useState<{ time: number; value: number }[]>([]);
   const timeRef = useRef(0);
 
   const updateAngles = (idx: number, val: number) => {
@@ -124,35 +123,12 @@ const RoboticsSimulator = () => {
   const animate = () => {
     timeRef.current += 0.02;
     const t = timeRef.current;
-    setAngles([
-      Math.sin(t * 0.5) * 1.2,
-      -0.3 + Math.sin(t * 0.7) * 0.4,
-      -0.5 + Math.sin(t * 1.1) * 0.3,
-      Math.sin(t * 1.5) * 0.5,
-    ]);
-    setTorqueData(prev => [...prev.slice(-60), { time: Math.round(t * 10) / 10, value: Math.abs(Math.sin(t * 0.7) * 45 + 15) }]);
-    if (playing) frameRef.current = requestAnimationFrame(animate);
-  };
-
-  useState(() => {
-    if (playing) frameRef.current = requestAnimationFrame(animate);
-    return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); };
-  });
-
-  // Handle play/pause
-  const togglePlay = () => {
-    if (!playing) {
-      setPlaying(true);
-      const run = () => {
-        timeRef.current += 0.02;
-        const t = timeRef.current;
         setAngles([
           Math.sin(t * 0.5) * 1.2,
           -0.3 + Math.sin(t * 0.7) * 0.4,
           -0.5 + Math.sin(t * 1.1) * 0.3,
           Math.sin(t * 1.5) * 0.5,
         ]);
-        setTorqueData(prev => [...prev.slice(-60), { time: Math.round(t * 10) / 10, value: Math.abs(Math.sin(t * 0.7) * 45 + 15) }]);
         frameRef.current = requestAnimationFrame(run);
       };
       frameRef.current = requestAnimationFrame(run);
