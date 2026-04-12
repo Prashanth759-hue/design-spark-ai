@@ -126,25 +126,8 @@ const IndustrialSimulator = () => {
   const [running, setRunning] = useState(false);
   const [beltSpeed, setBeltSpeed] = useState(2);
   const [spindleRPM, setSpindleRPM] = useState(3000);
-  const [throughputData, setThroughputData] = useState<{ time: number; value: number }[]>([]);
-  const timeRef = useRef(0);
 
-  const toggleRun = () => {
-    if (!running) {
-      setRunning(true);
-      const run = () => {
-        timeRef.current += 0.05;
-        setThroughputData(prev => [...prev.slice(-60), {
-          time: Math.round(timeRef.current * 10) / 10,
-          value: Math.round(beltSpeed * 12 + Math.random() * 5),
-        }]);
-        if (running) requestAnimationFrame(run);
-      };
-      requestAnimationFrame(run);
-    } else {
-      setRunning(false);
-    }
-  };
+  const toggleRun = () => setRunning(!running);
 
   return (
     <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">

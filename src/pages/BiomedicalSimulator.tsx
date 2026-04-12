@@ -103,28 +103,6 @@ const BiomedicalSimulator = () => {
   const [bpm, setBpm] = useState(72);
   const [flexion, setFlexion] = useState(0);
   const [view, setView] = useState<"heart" | "prosthetic">("heart");
-  const [ecgData, setEcgData] = useState<{ time: number; value: number }[]>([]);
-  const timeRef = useRef(0);
-
-  // Generate ECG-like data
-  useState(() => {
-    const interval = setInterval(() => {
-      timeRef.current += 0.1;
-      const t = timeRef.current;
-      const beatFreq = bpm / 60;
-      const phase = (t * beatFreq) % 1;
-      let ecg = 0;
-      if (phase < 0.1) ecg = Math.sin(phase * 31.4) * 0.3;
-      else if (phase < 0.15) ecg = 0;
-      else if (phase < 0.2) ecg = -0.2;
-      else if (phase < 0.25) ecg = 1.0;
-      else if (phase < 0.3) ecg = -0.4;
-      else if (phase < 0.5) ecg = Math.sin((phase - 0.3) * 15.7) * 0.15;
-      else ecg = 0;
-      setEcgData(prev => [...prev.slice(-80), { time: Math.round(t * 10) / 10, value: ecg }]);
-    }, 50);
-    return () => clearInterval(interval);
-  });
 
   return (
     <div className="w-screen h-screen bg-background flex flex-col overflow-hidden">
