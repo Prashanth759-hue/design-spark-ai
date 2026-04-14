@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Car, Building2, Cog, CircuitBoard, ArrowRight, LayoutDashboard, ArrowLeft, Trash2, Clock } from "lucide-react";
+import { Car, Building2, Cog, CircuitBoard, ArrowRight, LayoutDashboard, ArrowLeft, Trash2, Clock, BotMessageSquare, Plane, Ship, HeartPulse, Factory } from "lucide-react";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { Motorcycle } from "@/components/3d/Motorcycle";
 import { BusVehicle } from "@/components/3d/BusVehicle";
@@ -13,6 +13,11 @@ import { Villa } from "@/components/3d/Villa";
 import { Turbine } from "@/components/3d/Turbine";
 import { Engine } from "@/components/3d/Engine";
 import { DesignParams } from "@/lib/parseDesignParams";
+import { RobotArmPreview } from "@/components/3d/previews/RobotArmPreview";
+import { JetPreview } from "@/components/3d/previews/JetPreview";
+import { VesselPreview } from "@/components/3d/previews/VesselPreview";
+import { HeartPreview } from "@/components/3d/previews/HeartPreview";
+import { ConveyorPreview } from "@/components/3d/previews/ConveyorPreview";
 import { useDesigns } from "@/hooks/useDesigns";
 
 const DEFAULT_CAR_CONFIG = {
@@ -70,10 +75,45 @@ const DOMAINS = [
     stats: [{ label: "Components", value: "R, LED, Battery" }, { label: "Laws", value: "Ohm's Law" }, { label: "Detection", value: "Overload" }],
     previews: [],
   },
+  {
+    id: "robotics", label: "Robotics", icon: BotMessageSquare, color: "hsl(250 80% 60%)", route: "/robotics",
+    stats: [{ label: "DOF", value: "6-Axis Arm" }, { label: "Control", value: "Joint/Gripper" }, { label: "Monitoring", value: "Torque" }],
+    previews: [
+      { label: "Robot Arm", scene: <RobotArmPreview /> },
+    ],
+  },
+  {
+    id: "aerospace", label: "Aerospace", icon: Plane, color: "hsl(200 80% 50%)", route: "/aerospace",
+    stats: [{ label: "Aircraft", value: "Commercial Jet" }, { label: "Physics", value: "Lift/Drag" }, { label: "HUD", value: "Real-time" }],
+    previews: [
+      { label: "Commercial Jet", scene: <JetPreview /> },
+    ],
+  },
+  {
+    id: "marine", label: "Marine", icon: Ship, color: "hsl(190 70% 45%)", route: "/marine",
+    stats: [{ label: "Vessel", value: "Cargo Ship" }, { label: "Physics", value: "Wave/Drag" }, { label: "Navigation", value: "Active" }],
+    previews: [
+      { label: "Vessel", scene: <VesselPreview /> },
+    ],
+  },
+  {
+    id: "biomedical", label: "Biomedical", icon: HeartPulse, color: "hsl(0 72% 51%)", route: "/biomedical",
+    stats: [{ label: "Models", value: "Heart, Knee" }, { label: "Monitoring", value: "BPM/ECG" }, { label: "Materials", value: "Ti-6Al-4V" }],
+    previews: [
+      { label: "Heart", scene: <HeartPreview /> },
+    ],
+  },
+  {
+    id: "industrial", label: "Industrial", icon: Factory, color: "hsl(30 60% 45%)", route: "/industrial",
+    stats: [{ label: "Systems", value: "CNC, Conveyor" }, { label: "Metrics", value: "Throughput" }, { label: "Quality", value: "99.2%" }],
+    previews: [
+      { label: "Manufacturing", scene: <ConveyorPreview /> },
+    ],
+  },
 ];
 
-const DOMAIN_ICONS: Record<string, any> = { vehicle: Car, building: Building2, machine: Cog, circuit: CircuitBoard };
-const DOMAIN_ROUTES: Record<string, string> = { vehicle: "/drive", building: "/building", machine: "/machine", circuit: "/circuit" };
+const DOMAIN_ICONS: Record<string, any> = { vehicle: Car, building: Building2, machine: Cog, circuit: CircuitBoard, robotic: BotMessageSquare, aerospace: Plane, marine: Ship, biomedical: HeartPulse, industrial: Factory };
+const DOMAIN_ROUTES: Record<string, string> = { vehicle: "/drive", building: "/building", machine: "/machine", circuit: "/circuit", robotic: "/robotics", aerospace: "/aerospace", marine: "/marine", biomedical: "/biomedical", industrial: "/industrial" };
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -89,7 +129,7 @@ const Dashboard = () => {
           </button>
           <LayoutDashboard className="w-5 h-5 text-primary" />
           <span className="text-sm font-semibold text-foreground">Engineering Dashboard</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">4 Domains</span>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">9 Domains</span>
         </div>
       </header>
 
