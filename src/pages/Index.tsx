@@ -10,9 +10,10 @@ import Viewport3D from "@/components/Viewport3D";
 import { CarConfigurator } from "@/components/CarConfigurator";
 import { streamChat, ChatMsg } from "@/lib/streamChat";
 import { parseDesignParams } from "@/lib/parseDesignParams";
+import { parseDesignBlock, designBlockToDrawingType, designBlockToDrawingParams, designBlockTo3DParams, DesignBlock } from "@/lib/parseDesignBlock";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler } from "lucide-react";
+import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory } from "lucide-react";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 
 const Index = () => {
@@ -26,9 +27,16 @@ const Index = () => {
   const [showDrawing, setShowDrawing] = useState(false);
   const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit">("vehicle");
   const [drawingParams, setDrawingParams] = useState<Record<string, number | string>>({});
+  const [activeDesignBlock, setActiveDesignBlock] = useState<DesignBlock | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const designParams = useMemo(() => parseDesignParams(messages), [messages]);
+  // Use design block for 3D params if available, otherwise fall back to regex parser
+  const designParams = useMemo(() => {
+    if (activeDesignBlock) {
+      return designBlockTo3DParams(activeDesignBlock) as any;
+    }
+    return parseDesignParams(messages);
+  }, [messages, activeDesignBlock]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -92,47 +100,17 @@ const Index = () => {
       },
       onDone: () => {
         setIsLoading(false);
-        // Parse AI response for engineering drawing data
-        const lower = assistantContent.toLowerCase();
-        if (lower.includes("wheelbase") || lower.includes("vehicle") || lower.includes("car design")) {
-          setDrawingType("vehicle");
-          const wbMatch = assistantContent.match(/wheelbase[:\s]*(\d+)/i);
-          const twMatch = assistantContent.match(/track\s*width[:\s]*(\d+)/i);
-          setDrawingParams({
-            wheelbase: wbMatch ? parseInt(wbMatch[1]) : 2850,
-            trackWidth: twMatch ? parseInt(twMatch[1]) : 1580,
-            bodyLength: 4500, bodyHeight: 1200,
-          });
+
+        // Parse the unified design block from AI response
+        const allMsgs = [...messages.map(m => ({ role: m.role, content: m.content })), { role: "assistant", content: assistantContent }];
+        const block = parseDesignBlock(allMsgs);
+        
+        if (block) {
+          setActiveDesignBlock(block);
+          setDrawingType(designBlockToDrawingType(block));
+          setDrawingParams(designBlockToDrawingParams(block));
           setShowDrawing(true);
-        } else if (lower.includes("floor") && (lower.includes("building") || lower.includes("storey"))) {
-          setDrawingType("building");
-          const flMatch = assistantContent.match(/(\d+)\s*(?:floor|stor)/i);
-          setDrawingParams({
-            floors: flMatch ? parseInt(flMatch[1]) : 5,
-            height: (flMatch ? parseInt(flMatch[1]) : 5) * 3200,
-            width: 15000,
-          });
-          setShowDrawing(true);
-        } else if (lower.includes("rpm") || lower.includes("gear") || lower.includes("torque")) {
-          setDrawingType("machine");
-          const rpmMatch = assistantContent.match(/(\d+)\s*rpm/i);
-          const grMatch = assistantContent.match(/gear\s*ratio[:\s]*(\d+\.?\d*)/i);
-          setDrawingParams({
-            rpm: rpmMatch ? parseInt(rpmMatch[1]) : 500,
-            gearRatio: grMatch ? parseFloat(grMatch[1]) : 2,
-            teeth1: 12, teeth2: 24, centerDistance: 90, module: 2.5, material: "42CrMo4",
-          });
-          setShowDrawing(true);
-        } else if (lower.includes("circuit") || lower.includes("resistor") || lower.includes("voltage")) {
-          setDrawingType("circuit");
-          const vMatch = assistantContent.match(/(\d+\.?\d*)\s*v(?:olt)?/i);
-          const rMatch = assistantContent.match(/(\d+)\s*[ωΩ]/i);
-          setDrawingParams({
-            voltage: vMatch ? parseFloat(vMatch[1]) : 9,
-            r1: rMatch ? parseInt(rMatch[1]) : 100,
-            current: "28.1",
-          });
-          setShowDrawing(true);
+          setShow3D(true);
         }
       },
       onError: (error) => {
@@ -153,7 +131,7 @@ const Index = () => {
         onModuleSelect={setActiveModule}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        onNewChat={() => { setMessages([]); setShow3D(false); }}
+        onNewChat={() => { setMessages([]); setShow3D(false); setShowDrawing(false); setActiveDesignBlock(null); }}
       />
 
       <main className="flex-1 flex flex-col min-w-0">
@@ -162,25 +140,30 @@ const Index = () => {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">AI Design Assistant</span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">v2.0</span>
+            {activeDesignBlock && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">
+                {activeDesignBlock.domain} / {activeDesignBlock.type.replace(/_/g, ' ')}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {/* Domain simulators */}
-            <button onClick={() => navigate("/drive")}
-              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
-              <Car className="w-3 h-3" /> Drive
-            </button>
-            <button onClick={() => navigate("/building")}
-              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
-              <Building2 className="w-3 h-3" /> Building
-            </button>
-            <button onClick={() => navigate("/machine")}
-              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
-              <Cog className="w-3 h-3" /> Machine
-            </button>
-            <button onClick={() => navigate("/circuit")}
-              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
-            <CircuitBoard className="w-3 h-3" /> Circuit
-            </button>
+            {[
+              { route: "/drive", icon: Car, label: "Drive" },
+              { route: "/building", icon: Building2, label: "Building" },
+              { route: "/machine", icon: Cog, label: "Machine" },
+              { route: "/circuit", icon: CircuitBoard, label: "Circuit" },
+              { route: "/robotics", icon: BotMessageSquare, label: "Robotics" },
+              { route: "/aerospace", icon: Plane, label: "Aerospace" },
+              { route: "/marine", icon: Ship, label: "Marine" },
+              { route: "/biomedical", icon: HeartPulse, label: "Bio" },
+              { route: "/industrial", icon: Factory, label: "Industrial" },
+            ].map(({ route, icon: Icon, label }) => (
+              <button key={route} onClick={() => navigate(route)}
+                className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-accent/20 text-accent-foreground hover:bg-accent/40 transition-colors font-semibold">
+                <Icon className="w-3 h-3" /> {label}
+              </button>
+            ))}
 
             <div className="w-px h-5 bg-border mx-1" />
 
@@ -232,6 +215,15 @@ const Index = () => {
                   {/* Engineering Drawing - auto-appears after relevant AI responses */}
                   {showDrawing && messages.length > 0 && (
                     <div className="px-4 py-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ruler className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-semibold text-foreground">Engineering Blueprint</span>
+                        {activeDesignBlock && (
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                            {activeDesignBlock.domain} — {activeDesignBlock.type.replace(/_/g, ' ')}
+                          </span>
+                        )}
+                      </div>
                       <EngineeringDrawing type={drawingType} params={drawingParams} />
                     </div>
                   )}
