@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Car, Building2, Cog, CircuitBoard, ArrowRight, LayoutDashboard, ArrowLeft, Trash2, Clock } from "lucide-react";
+import { Car, Building2, Cog, CircuitBoard, ArrowRight, LayoutDashboard, ArrowLeft, Trash2, Clock, BotMessageSquare, Plane, Ship, HeartPulse, Factory } from "lucide-react";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { Motorcycle } from "@/components/3d/Motorcycle";
 import { BusVehicle } from "@/components/3d/BusVehicle";
@@ -13,6 +13,11 @@ import { Villa } from "@/components/3d/Villa";
 import { Turbine } from "@/components/3d/Turbine";
 import { Engine } from "@/components/3d/Engine";
 import { DesignParams } from "@/lib/parseDesignParams";
+import { RobotArmPreview } from "@/components/3d/previews/RobotArmPreview";
+import { JetPreview } from "@/components/3d/previews/JetPreview";
+import { VesselPreview } from "@/components/3d/previews/VesselPreview";
+import { HeartPreview } from "@/components/3d/previews/HeartPreview";
+import { ConveyorPreview } from "@/components/3d/previews/ConveyorPreview";
 import { useDesigns } from "@/hooks/useDesigns";
 
 const DEFAULT_CAR_CONFIG = {
