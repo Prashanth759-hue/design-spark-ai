@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { stripDesignBlock } from "@/lib/parseDesignBlock";
 
 export interface Message {
   id: string;
@@ -67,7 +68,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
             prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5"
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message.content}
+              {stripDesignBlock(message.content)}
             </ReactMarkdown>
           </div>
         )}
