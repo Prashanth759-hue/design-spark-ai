@@ -75,10 +75,45 @@ const DOMAINS = [
     stats: [{ label: "Components", value: "R, LED, Battery" }, { label: "Laws", value: "Ohm's Law" }, { label: "Detection", value: "Overload" }],
     previews: [],
   },
+  {
+    id: "robotics", label: "Robotics", icon: BotMessageSquare, color: "hsl(250 80% 60%)", route: "/robotics",
+    stats: [{ label: "DOF", value: "6-Axis Arm" }, { label: "Control", value: "Joint/Gripper" }, { label: "Monitoring", value: "Torque" }],
+    previews: [
+      { label: "Robot Arm", scene: <RobotArmPreview /> },
+    ],
+  },
+  {
+    id: "aerospace", label: "Aerospace", icon: Plane, color: "hsl(200 80% 50%)", route: "/aerospace",
+    stats: [{ label: "Aircraft", value: "Commercial Jet" }, { label: "Physics", value: "Lift/Drag" }, { label: "HUD", value: "Real-time" }],
+    previews: [
+      { label: "Commercial Jet", scene: <JetPreview /> },
+    ],
+  },
+  {
+    id: "marine", label: "Marine", icon: Ship, color: "hsl(190 70% 45%)", route: "/marine",
+    stats: [{ label: "Vessel", value: "Cargo Ship" }, { label: "Physics", value: "Wave/Drag" }, { label: "Navigation", value: "Active" }],
+    previews: [
+      { label: "Vessel", scene: <VesselPreview /> },
+    ],
+  },
+  {
+    id: "biomedical", label: "Biomedical", icon: HeartPulse, color: "hsl(0 72% 51%)", route: "/biomedical",
+    stats: [{ label: "Models", value: "Heart, Knee" }, { label: "Monitoring", value: "BPM/ECG" }, { label: "Materials", value: "Ti-6Al-4V" }],
+    previews: [
+      { label: "Heart", scene: <HeartPreview /> },
+    ],
+  },
+  {
+    id: "industrial", label: "Industrial", icon: Factory, color: "hsl(30 60% 45%)", route: "/industrial",
+    stats: [{ label: "Systems", value: "CNC, Conveyor" }, { label: "Metrics", value: "Throughput" }, { label: "Quality", value: "99.2%" }],
+    previews: [
+      { label: "Manufacturing", scene: <ConveyorPreview /> },
+    ],
+  },
 ];
 
-const DOMAIN_ICONS: Record<string, any> = { vehicle: Car, building: Building2, machine: Cog, circuit: CircuitBoard };
-const DOMAIN_ROUTES: Record<string, string> = { vehicle: "/drive", building: "/building", machine: "/machine", circuit: "/circuit" };
+const DOMAIN_ICONS: Record<string, any> = { vehicle: Car, building: Building2, machine: Cog, circuit: CircuitBoard, robotic: BotMessageSquare, aerospace: Plane, marine: Ship, biomedical: HeartPulse, industrial: Factory };
+const DOMAIN_ROUTES: Record<string, string> = { vehicle: "/drive", building: "/building", machine: "/machine", circuit: "/circuit", robotic: "/robotics", aerospace: "/aerospace", marine: "/marine", biomedical: "/biomedical", industrial: "/industrial" };
 
 const Dashboard = () => {
   const navigate = useNavigate();
