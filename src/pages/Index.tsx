@@ -29,7 +29,7 @@ const Index = () => {
   const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial">("vehicle");
   const [drawingParams, setDrawingParams] = useState<Record<string, number | string>>({});
   const [activeDesignBlock, setActiveDesignBlock] = useState<DesignBlock | null>(null);
-  const [selectedModel, setSelectedModel] = useState(DEFAULT_AI_MODEL);
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_AI_MODEL);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Use design block for 3D params if available, otherwise fall back to regex parser
