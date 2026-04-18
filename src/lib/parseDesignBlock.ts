@@ -40,17 +40,17 @@ export function parseDesignBlock(messages: { role: string; content: string }[]):
 /**
  * Maps a DesignBlock to the drawing type used by EngineeringDrawing
  */
-export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" {
-  const map: Record<string, "vehicle" | "building" | "machine" | "circuit"> = {
+export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
+  const map: Record<string, "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
     vehicle: "vehicle",
     building: "building",
     machine: "machine",
     circuit: "circuit",
-    robotics: "machine",
-    aerospace: "vehicle",
-    marine: "vehicle",
-    biomedical: "machine",
-    industrial: "machine",
+    robotics: "robotics",
+    aerospace: "aerospace",
+    marine: "marine",
+    biomedical: "biomedical",
+    industrial: "industrial",
   };
   return map[block.domain] || "machine";
 }
@@ -63,8 +63,6 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
 
   switch (block.domain) {
     case "vehicle":
-    case "aerospace":
-    case "marine":
       return {
         wheelbase: p.wheelbase || p.fuselageLength || p.length || 2850,
         trackWidth: p.trackWidth || p.wingspan || p.beam || 1580,
@@ -82,9 +80,6 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
         depth: p.depth || 12000,
       };
     case "machine":
-    case "robotics":
-    case "biomedical":
-    case "industrial":
       return {
         rpm: p.rpm || p.spindleRpm || 500,
         gearRatio: p.gearRatio || 2,
@@ -94,11 +89,57 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
         module: p.module || 2.5,
         material: p.material || "42CrMo4",
       };
+    case "robotics":
+      return {
+        reach: p.reach || 850,
+        payload: p.payload || 5,
+        joints: p.joints || 6,
+        speed: p.speed || 1.5,
+        material: p.material || "Aluminum 7075",
+      };
+    case "biomedical":
+      return {
+        designType: block.type,
+        bpm: p.bpm || 72,
+        strokeVolume: p.strokeVolume || 70,
+        systolic: p.systolic || 120,
+        diastolic: p.diastolic || 80,
+        flexion: p.flexion || 0,
+        material: p.material || "Ti-6Al-4V",
+      };
+    case "industrial":
+      return {
+        designType: block.type,
+        beltSpeed: p.beltSpeed || 2,
+        spindleRpm: p.spindleRpm || 3000,
+        throughput: p.throughput || 24,
+        efficiency: p.efficiency || 91,
+        quality: p.quality || 99.2,
+        material: p.material || "Tool Steel H13",
+      };
     case "circuit":
       return {
         voltage: p.voltage || 9,
         r1: p.resistance || 100,
         current: p.current || "28.1",
+      };
+    case "aerospace":
+      return {
+        wingspan: p.wingspan || 35000,
+        fuselageLength: p.fuselageLength || 38000,
+        altitude: p.altitude || 35000,
+        airspeed: p.airspeed || 480,
+        engines: p.engines || 2,
+        material: p.material || "Al-Li 2050",
+      };
+    case "marine":
+      return {
+        length: p.length || 120000,
+        beam: p.beam || 18000,
+        displacement: p.displacement || 5000,
+        speed: p.speed || 15,
+        hullDrag: p.hullDrag || 109.7,
+        material: p.material || "Marine Steel AH36",
       };
     default:
       return p;
@@ -124,7 +165,7 @@ export function designBlockTo3DParams(block: DesignBlock) {
     industrial: "beam",
   };
 
-  return {
+  const base = {
     structureType: structureTypeMap[block.domain] || "beam",
     beamLength: (p.bodyLength || p.fuselageLength || p.length || 4000) / 1000,
     beamHeight: (p.bodyHeight || p.height || 300) / 1000,
@@ -140,6 +181,57 @@ export function designBlockTo3DParams(block: DesignBlock) {
     groundClearance: (p.groundClearance || 165) / 1000,
     bodyHeight: (p.bodyHeight || 1450) / 1000,
   };
+
+  switch (block.domain) {
+    case "robotics":
+      return {
+        ...base,
+        structureType: "robotics",
+        beamLength: (p.reach || 850) / 1000,
+        beamHeight: Math.max(0.35, (p.payload || 5) * 0.08),
+        beamWidth: 0.6,
+        columnHeight: 1.2,
+        label: `${block.type.replace(/_/g, " ")} • ${p.reach || 850}mm reach`,
+      };
+    case "aerospace":
+      return {
+        ...base,
+        structureType: "aerospace",
+        beamLength: (p.fuselageLength || 38000) / 1000,
+        beamWidth: (p.wingspan || 35000) / 1000,
+        beamHeight: 3.6,
+        label: `${block.type.replace(/_/g, " ")} • ${(p.wingspan || 35000) / 1000}m span`,
+      };
+    case "marine":
+      return {
+        ...base,
+        structureType: "marine",
+        beamLength: (p.length || 120000) / 1000,
+        beamWidth: (p.beam || 18000) / 1000,
+        beamHeight: Math.max(4, ((p.beam || 18000) / 1000) * 0.32),
+        label: `${block.type.replace(/_/g, " ")} • ${(p.length || 120000) / 1000}m LOA`,
+      };
+    case "biomedical":
+      return {
+        ...base,
+        structureType: "biomedical",
+        beamLength: Math.max(0.35, (p.strokeVolume || 70) / 120),
+        beamWidth: 0.55,
+        beamHeight: 0.7,
+        label: `${block.type.replace(/_/g, " ")} • ${(p.bpm || p.flexion || 72).toString()}`,
+      };
+    case "industrial":
+      return {
+        ...base,
+        structureType: "industrial",
+        beamLength: Math.max(2.5, (p.throughput || 24) / 6),
+        beamWidth: 0.8,
+        beamHeight: Math.max(0.5, (p.efficiency || 91) / 120),
+        label: `${block.type.replace(/_/g, " ")} • ${p.throughput || 24} u/hr`,
+      };
+    default:
+      return base;
+  }
 }
 
 /**

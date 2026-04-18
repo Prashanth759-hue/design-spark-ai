@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Mic, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AI_MODEL_OPTIONS, DEFAULT_AI_MODEL } from "@/lib/aiModels";
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, module?: string, model?: string) => void;
   isLoading: boolean;
   activeModule: string;
+  selectedModel?: string;
+  onModelChange?: (model: string) => void;
 }
 
 const moduleLabels: Record<string, string> = {
@@ -17,14 +20,14 @@ const moduleLabels: Record<string, string> = {
   reporting: "Reporting & Export",
 };
 
-const ChatInput = ({ onSend, isLoading, activeModule }: ChatInputProps) => {
+const ChatInput = ({ onSend, isLoading, activeModule, selectedModel = DEFAULT_AI_MODEL, onModelChange }: ChatInputProps) => {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
-    onSend(trimmed);
+    onSend(trimmed, undefined, selectedModel);
     setInput("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -55,6 +58,20 @@ const ChatInput = ({ onSend, isLoading, activeModule }: ChatInputProps) => {
           <span className="text-[10px] font-mono text-primary">
             {moduleLabels[activeModule]}
           </span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Model:</span>
+            <select
+              value={selectedModel}
+              onChange={(e) => onModelChange?.(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-[10px] font-mono text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {AI_MODEL_OPTIONS.map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="relative flex items-end gap-2 rounded-lg border border-border bg-surface p-2 focus-within:glow-border transition-shadow">
           <textarea

@@ -11,6 +11,11 @@ import { TrussStructure } from "@/components/3d/TrussStructure";
 import { StructureDimensions, CarDimensions } from "@/components/3d/DimensionLabel";
 import { SportsCar } from "@/components/3d/SportsCar";
 import { CarConfig } from "@/components/CarConfigurator";
+import { RobotArmPreview } from "@/components/3d/previews/RobotArmPreview";
+import { JetPreview } from "@/components/3d/previews/JetPreview";
+import { VesselPreview } from "@/components/3d/previews/VesselPreview";
+import { HeartPreview } from "@/components/3d/previews/HeartPreview";
+import { ConveyorPreview } from "@/components/3d/previews/ConveyorPreview";
 
 const DEFAULT_CAR_CONFIG: CarConfig = {
   bodyColor: "#c8102e",
@@ -37,6 +42,11 @@ function SceneContent({ params }: { params: DesignParams }) {
     building: <BuildingStructure params={params} />,
     truss: <TrussStructure params={params} />,
     beam: <BeamStructure params={params} />,
+    robotics: <RobotArmPreview />,
+    aerospace: <JetPreview />,
+    marine: <VesselPreview />,
+    biomedical: <HeartPreview />,
+    industrial: <ConveyorPreview />,
     generic: <BeamStructure params={params} />,
   };
 
@@ -102,7 +112,7 @@ const DEFAULT_PARAMS: DesignParams = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  car: "Vehicle", bridge: "Bridge", building: "Building", truss: "Truss", beam: "Beam", generic: "Preview",
+  car: "Vehicle", bridge: "Bridge", building: "Building", truss: "Truss", beam: "Beam", robotics: "Robotics", aerospace: "Aerospace", marine: "Marine", biomedical: "Biomedical", industrial: "Industrial", generic: "Preview",
 };
 
 const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Viewport3DProps) => {
