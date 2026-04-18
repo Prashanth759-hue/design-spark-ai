@@ -879,6 +879,11 @@ export function EngineeringDrawing({ type, params = {} }: EngineeringDrawingProp
     building: drawBuilding,
     machine: drawMachine,
     circuit: drawCircuit,
+    robotics: () => <ExtendedDomainDrawing type="robotics" params={params} width={w} height={h} margin={margin} />,
+    aerospace: () => <ExtendedDomainDrawing type="aerospace" params={params} width={w} height={h} margin={margin} />,
+    marine: () => <ExtendedDomainDrawing type="marine" params={params} width={w} height={h} margin={margin} />,
+    biomedical: () => <ExtendedDomainDrawing type="biomedical" params={params} width={w} height={h} margin={margin} />,
+    industrial: () => <ExtendedDomainDrawing type="industrial" params={params} width={w} height={h} margin={margin} />,
   };
 
   return (
