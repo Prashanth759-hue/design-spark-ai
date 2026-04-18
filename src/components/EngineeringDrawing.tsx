@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
+import { ExtendedDomainDrawing } from "@/components/engineering/ExtendedDomainDrawing";
 
 interface EngineeringDrawingProps {
-  type: "vehicle" | "building" | "machine" | "circuit";
+  type: "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial";
   params?: Record<string, number | string>;
 }
 
