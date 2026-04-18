@@ -40,17 +40,17 @@ export function parseDesignBlock(messages: { role: string; content: string }[]):
 /**
  * Maps a DesignBlock to the drawing type used by EngineeringDrawing
  */
-export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" {
-  const map: Record<string, "vehicle" | "building" | "machine" | "circuit"> = {
+export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
+  const map: Record<string, "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
     vehicle: "vehicle",
     building: "building",
     machine: "machine",
     circuit: "circuit",
-    robotics: "machine",
-    aerospace: "vehicle",
-    marine: "vehicle",
-    biomedical: "machine",
-    industrial: "machine",
+    robotics: "robotics",
+    aerospace: "aerospace",
+    marine: "marine",
+    biomedical: "biomedical",
+    industrial: "industrial",
   };
   return map[block.domain] || "machine";
 }
@@ -82,9 +82,6 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
         depth: p.depth || 12000,
       };
     case "machine":
-    case "robotics":
-    case "biomedical":
-    case "industrial":
       return {
         rpm: p.rpm || p.spindleRpm || 500,
         gearRatio: p.gearRatio || 2,
@@ -94,11 +91,57 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
         module: p.module || 2.5,
         material: p.material || "42CrMo4",
       };
+    case "robotics":
+      return {
+        reach: p.reach || 850,
+        payload: p.payload || 5,
+        joints: p.joints || 6,
+        speed: p.speed || 1.5,
+        material: p.material || "Aluminum 7075",
+      };
+    case "biomedical":
+      return {
+        designType: block.type,
+        bpm: p.bpm || 72,
+        strokeVolume: p.strokeVolume || 70,
+        systolic: p.systolic || 120,
+        diastolic: p.diastolic || 80,
+        flexion: p.flexion || 0,
+        material: p.material || "Ti-6Al-4V",
+      };
+    case "industrial":
+      return {
+        designType: block.type,
+        beltSpeed: p.beltSpeed || 2,
+        spindleRpm: p.spindleRpm || 3000,
+        throughput: p.throughput || 24,
+        efficiency: p.efficiency || 91,
+        quality: p.quality || 99.2,
+        material: p.material || "Tool Steel H13",
+      };
     case "circuit":
       return {
         voltage: p.voltage || 9,
         r1: p.resistance || 100,
         current: p.current || "28.1",
+      };
+    case "aerospace":
+      return {
+        wingspan: p.wingspan || 35000,
+        fuselageLength: p.fuselageLength || 38000,
+        altitude: p.altitude || 35000,
+        airspeed: p.airspeed || 480,
+        engines: p.engines || 2,
+        material: p.material || "Al-Li 2050",
+      };
+    case "marine":
+      return {
+        length: p.length || 120000,
+        beam: p.beam || 18000,
+        displacement: p.displacement || 5000,
+        speed: p.speed || 15,
+        hullDrag: p.hullDrag || 109.7,
+        material: p.material || "Marine Steel AH36",
       };
     default:
       return p;

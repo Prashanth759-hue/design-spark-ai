@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
 import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory } from "lucide-react";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
+import { DEFAULT_AI_MODEL } from "@/lib/aiModels";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -25,9 +26,10 @@ const Index = () => {
   const [show3D, setShow3D] = useState(false);
   const [showConfigurator, setShowConfigurator] = useState(false);
   const [showDrawing, setShowDrawing] = useState(false);
-  const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit">("vehicle");
+  const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial">("vehicle");
   const [drawingParams, setDrawingParams] = useState<Record<string, number | string>>({});
   const [activeDesignBlock, setActiveDesignBlock] = useState<DesignBlock | null>(null);
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_AI_MODEL);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Use design block for 3D params if available, otherwise fall back to regex parser
@@ -51,8 +53,9 @@ const Index = () => {
     navigate("/auth");
   };
 
-  const handleSend = async (content: string, module?: string) => {
+  const handleSend = async (content: string, module?: string, model?: string) => {
     const mod = module || activeModule;
+    const aiModel = model || selectedModel;
     if (module) setActiveModule(module);
 
     const userMsg: Message = {
@@ -77,6 +80,7 @@ const Index = () => {
 
     await streamChat({
       messages: history,
+      model: aiModel,
       onDelta: (chunk) => {
         assistantContent += chunk;
         setMessages((prev) => {
@@ -231,7 +235,7 @@ const Index = () => {
                 </div>
               )}
             </div>
-            <ChatInput onSend={handleSend} isLoading={isLoading} activeModule={activeModule} />
+            <ChatInput onSend={handleSend} isLoading={isLoading} activeModule={activeModule} selectedModel={selectedModel} onModelChange={setSelectedModel} />
           </div>
 
           {/* 3D Viewport */}
