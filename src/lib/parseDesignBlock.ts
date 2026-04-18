@@ -63,8 +63,6 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
 
   switch (block.domain) {
     case "vehicle":
-    case "aerospace":
-    case "marine":
       return {
         wheelbase: p.wheelbase || p.fuselageLength || p.length || 2850,
         trackWidth: p.trackWidth || p.wingspan || p.beam || 1580,
