@@ -180,7 +180,9 @@ export function designBlockTo3DParams(block: DesignBlock) {
     trackWidth: (p.trackWidth || 1580) / 1000,
     groundClearance: (p.groundClearance || 165) / 1000,
     bodyHeight: (p.bodyHeight || 1450) / 1000,
-  };
+    // Pass raw AI params through so domain-specific previews can consume them
+    rawParams: p,
+  } as any;
 
   switch (block.domain) {
     case "robotics":
