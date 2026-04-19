@@ -1,43 +1,168 @@
-export function JetPreview() {
+import { useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
+import * as THREE from "three";
+
+interface JetPreviewProps {
+  wingspan?: number;      // mm
+  fuselageLength?: number;// mm
+  altitude?: number;      // ft
+  airspeed?: number;      // kts
+  engines?: number;
+  showDimensions?: boolean;
+}
+
+export function JetPreview({
+  wingspan = 35000,
+  fuselageLength = 38000,
+  altitude = 35000,
+  airspeed = 480,
+  engines = 2,
+  showDimensions = true,
+}: JetPreviewProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const fanL = useRef<THREE.Mesh>(null);
+  const fanR = useRef<THREE.Mesh>(null);
+
+  // Scale: wingspan 35m -> ~3.5 scene units span
+  const span = wingspan / 10000;
+  const len = fuselageLength / 10000;
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (groupRef.current) {
+      groupRef.current.position.y = Math.sin(t * 0.4) * 0.05;
+      groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.04;
+    }
+    if (fanL.current) fanL.current.rotation.x = t * 8;
+    if (fanR.current) fanR.current.rotation.x = t * 8;
+  });
+
+  const fuselage = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: "#f1f5f9", metalness: 0.55, roughness: 0.25, clearcoat: 0.85, clearcoatRoughness: 0.15,
+  }), []);
+  const accent = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: "#1e40af", metalness: 0.4, roughness: 0.35,
+  }), []);
+  const engine = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: "#94a3b8", metalness: 0.95, roughness: 0.18,
+  }), []);
+  const window = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: "#0f172a", metalness: 0.2, roughness: 0.1, transmission: 0.3, thickness: 0.1,
+  }), []);
+
   return (
-    <group scale={0.35}>
-      {/* Fuselage */}
-      <mesh castShadow>
-        <cylinderGeometry args={[0.3, 0.25, 5, 16]} />
-        <meshPhysicalMaterial color="#e2e8f0" metalness={0.6} roughness={0.3} clearcoat={0.8} />
+    <group ref={groupRef} position={[0, 0.2, 0]} scale={0.7}>
+      {/* Fuselage - tapered cylinder + nose cone + tail cone */}
+      <group rotation={[0, 0, Math.PI / 2]}>
+        <mesh castShadow material={fuselage}>
+          <cylinderGeometry args={[0.32, 0.34, len * 0.78, 28]} />
+        </mesh>
+        {/* Nose cone */}
+        <mesh castShadow position={[len * 0.46, 0, 0]} material={fuselage}>
+          <coneGeometry args={[0.32, len * 0.22, 28]} />
+        </mesh>
+        {/* Tail cone */}
+        <mesh castShadow position={[-len * 0.46, 0, 0]} rotation={[0, 0, Math.PI]} material={fuselage}>
+          <coneGeometry args={[0.34, len * 0.18, 28]} />
+        </mesh>
+      </group>
+
+      {/* Cockpit windows (dark band near nose) */}
+      <mesh position={[len * 0.38, 0.18, 0]} rotation={[0, 0, -0.1]} material={window}>
+        <boxGeometry args={[0.4, 0.08, 0.5]} />
       </mesh>
-      {/* Nose */}
-      <mesh position={[0, 2.7, 0]} castShadow>
-        <coneGeometry args={[0.3, 0.8, 16]} />
-        <meshPhysicalMaterial color="#cbd5e1" metalness={0.6} roughness={0.3} />
+
+      {/* Cabin window strip */}
+      {Array.from({ length: 18 }).map((_, i) => (
+        <mesh key={i} position={[len * 0.32 - i * len * 0.04, 0.05, 0.32]} material={window}>
+          <boxGeometry args={[0.04, 0.04, 0.01]} />
+        </mesh>
+      ))}
+      {Array.from({ length: 18 }).map((_, i) => (
+        <mesh key={`r${i}`} position={[len * 0.32 - i * len * 0.04, 0.05, -0.32]} material={window}>
+          <boxGeometry args={[0.04, 0.04, 0.01]} />
+        </mesh>
+      ))}
+
+      {/* Belly stripe */}
+      <mesh position={[0, -0.05, 0]} rotation={[0, 0, Math.PI / 2]} material={accent}>
+        <cylinderGeometry args={[0.345, 0.345, len * 0.7, 28, 1, true]} />
       </mesh>
-      {/* Wings */}
-      <mesh position={[1.5, 0, 0]} castShadow>
-        <boxGeometry args={[3, 0.06, 0.8]} />
-        <meshPhysicalMaterial color="#e2e8f0" metalness={0.6} roughness={0.3} />
+
+      {/* Wings - swept */}
+      <mesh castShadow position={[-0.1, -0.1, 0]} rotation={[0, 0, 0]} material={fuselage}>
+        <boxGeometry args={[0.55, 0.04, span]} />
       </mesh>
-      <mesh position={[-1.5, 0, 0]} castShadow>
-        <boxGeometry args={[3, 0.06, 0.8]} />
-        <meshPhysicalMaterial color="#e2e8f0" metalness={0.6} roughness={0.3} />
+      {/* Wing tips */}
+      <mesh castShadow position={[-0.1, -0.05, span / 2]} rotation={[0, 0, 0]} material={accent}>
+        <boxGeometry args={[0.18, 0.12, 0.15]} />
       </mesh>
-      {/* Tail */}
-      <mesh position={[0, -2.2, 0]} castShadow>
-        <boxGeometry args={[1.2, 0.06, 0.5]} />
-        <meshPhysicalMaterial color="#cbd5e1" metalness={0.5} roughness={0.3} />
+      <mesh castShadow position={[-0.1, -0.05, -span / 2]} rotation={[0, 0, 0]} material={accent}>
+        <boxGeometry args={[0.18, 0.12, 0.15]} />
       </mesh>
-      <mesh position={[0, -2, 0.3]} castShadow>
-        <boxGeometry args={[0.06, 0.6, 0.6]} />
-        <meshPhysicalMaterial color="#3b82f6" metalness={0.5} roughness={0.3} />
+
+      {/* Horizontal stabilizer */}
+      <mesh castShadow position={[-len * 0.5, 0.05, 0]} material={fuselage}>
+        <boxGeometry args={[0.4, 0.03, span * 0.42]} />
       </mesh>
-      {/* Engines */}
-      <mesh position={[0.8, -0.2, 0]} castShadow>
-        <cylinderGeometry args={[0.15, 0.18, 0.5, 12]} />
-        <meshPhysicalMaterial color="#94a3b8" metalness={0.8} roughness={0.2} />
+
+      {/* Vertical stabilizer */}
+      <mesh castShadow position={[-len * 0.52, 0.42, 0]} material={fuselage}>
+        <boxGeometry args={[0.45, 0.55, 0.04]} />
       </mesh>
-      <mesh position={[-0.8, -0.2, 0]} castShadow>
-        <cylinderGeometry args={[0.15, 0.18, 0.5, 12]} />
-        <meshPhysicalMaterial color="#94a3b8" metalness={0.8} roughness={0.2} />
+      <mesh position={[-len * 0.55, 0.6, 0]} material={accent}>
+        <boxGeometry args={[0.3, 0.18, 0.05]} />
       </mesh>
+
+      {/* Engine nacelles + spinning fans */}
+      {Array.from({ length: engines }).map((_, i) => {
+        const z = engines === 2 ? (i === 0 ? span * 0.27 : -span * 0.27) : (i - (engines - 1) / 2) * span * 0.22;
+        return (
+          <group key={i} position={[0.05, -0.22, z]}>
+            {/* Nacelle */}
+            <mesh castShadow rotation={[0, 0, Math.PI / 2]} material={engine}>
+              <cylinderGeometry args={[0.14, 0.16, 0.55, 24]} />
+            </mesh>
+            {/* Intake ring */}
+            <mesh position={[0.27, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={engine}>
+              <torusGeometry args={[0.14, 0.018, 8, 24]} />
+            </mesh>
+            {/* Fan blades (visible disk) */}
+            <mesh ref={i === 0 ? fanL : fanR} position={[0.26, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.12, 0.12, 0.02, 24]} />
+              <meshPhysicalMaterial color="#1e293b" metalness={0.95} roughness={0.2} />
+            </mesh>
+            {/* Pylon */}
+            <mesh position={[-0.05, 0.18, 0]} material={engine}>
+              <boxGeometry args={[0.18, 0.32, 0.06]} />
+            </mesh>
+          </group>
+        );
+      })}
+
+      {showDimensions && (
+        <>
+          <Html position={[0, 0.95, 0]} center distanceFactor={6}>
+            <div style={{
+              background: "rgba(15,23,42,0.92)", color: "#22d3ee", padding: "4px 10px",
+              borderRadius: 6, fontSize: 11, fontFamily: "monospace", whiteSpace: "nowrap",
+              border: "1px solid #22d3ee55", fontWeight: 600,
+            }}>
+              SPAN {(wingspan / 1000).toFixed(1)}m • L {(fuselageLength / 1000).toFixed(1)}m
+            </div>
+          </Html>
+          <Html position={[len * 0.5, -0.5, 0]} center distanceFactor={7}>
+            <div style={{
+              background: "rgba(15,23,42,0.85)", color: "#f59e0b", padding: "2px 6px",
+              borderRadius: 4, fontSize: 9, fontFamily: "monospace",
+              border: "1px solid #f59e0b55",
+            }}>
+              FL{Math.round(altitude / 100)} • {airspeed}kts
+            </div>
+          </Html>
+        </>
+      )}
     </group>
   );
 }
