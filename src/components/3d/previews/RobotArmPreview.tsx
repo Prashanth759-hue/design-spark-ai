@@ -89,8 +89,8 @@ export function RobotArmPreview({
 
         {/* Joint 1 - shoulder */}
         <group ref={j1Ref} position={[0, 0.74, 0]}>
-          <mesh castShadow material={steel}>
-            <cylinderGeometry args={[0.16, 0.16, 0.36, 24]} rotation={[Math.PI / 2, 0, 0]} />
+          <mesh castShadow material={steel} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.16, 0.16, 0.36, 24]} />
           </mesh>
           {/* Upper link */}
           <group rotation={[0, 0, Math.PI / 2]}>
@@ -104,8 +104,8 @@ export function RobotArmPreview({
 
             {/* Joint 2 - elbow */}
             <group ref={j2Ref} position={[0.9 * s, 0, 0]}>
-              <mesh castShadow material={steel}>
-                <cylinderGeometry args={[0.13, 0.13, 0.3, 24]} rotation={[Math.PI / 2, 0, 0]} />
+              <mesh castShadow material={steel} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.13, 0.13, 0.3, 24]} />
               </mesh>
               {/* Forearm */}
               <mesh castShadow position={[0.4 * s, 0, 0]} material={orange}>
@@ -117,8 +117,8 @@ export function RobotArmPreview({
 
               {/* Joint 3 - wrist roll */}
               <group ref={j3Ref} position={[0.8 * s, 0, 0]}>
-                <mesh castShadow material={steel}>
-                  <cylinderGeometry args={[0.1, 0.1, 0.22, 20]} rotation={[Math.PI / 2, 0, 0]} />
+                <mesh castShadow material={steel} rotation={[Math.PI / 2, 0, 0]}>
+                  <cylinderGeometry args={[0.1, 0.1, 0.22, 20]} />
                 </mesh>
                 {/* Wrist */}
                 <group ref={wristRef} position={[0.18, 0, 0]}>
@@ -126,8 +126,8 @@ export function RobotArmPreview({
                     <boxGeometry args={[0.18, 0.14, 0.14]} />
                   </mesh>
                   {/* Tool flange */}
-                  <mesh castShadow position={[0.13, 0, 0]} material={dark}>
-                    <cylinderGeometry args={[0.08, 0.08, 0.06, 16]} rotation={[0, 0, Math.PI / 2]} />
+                  <mesh castShadow position={[0.13, 0, 0]} material={dark} rotation={[0, 0, Math.PI / 2]}>
+                    <cylinderGeometry args={[0.08, 0.08, 0.06, 16]} />
                   </mesh>
                   {/* Gripper jaws */}
                   <mesh ref={gripL} castShadow position={[0.22, 0, 0.06]} material={steel}>
