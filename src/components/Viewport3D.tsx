@@ -36,17 +36,20 @@ function SceneContent({ params }: { params: DesignParams }) {
     bodyColor: params.materialColor || DEFAULT_CAR_CONFIG.bodyColor,
   };
 
+  // Pull domain-specific params from designParams (forwarded by Index via designBlockTo3DParams)
+  const p = (params as any).rawParams || {};
+
   const structureMap: Record<string, JSX.Element> = {
     car: <SportsCar config={carConfig} autoRotate={false} />,
     bridge: <BridgeStructure params={params} />,
     building: <BuildingStructure params={params} />,
     truss: <TrussStructure params={params} />,
     beam: <BeamStructure params={params} />,
-    robotics: <RobotArmPreview />,
-    aerospace: <JetPreview />,
-    marine: <VesselPreview />,
-    biomedical: <HeartPreview />,
-    industrial: <ConveyorPreview />,
+    robotics: <RobotArmPreview reach={p.reach} payload={p.payload} joints={p.joints} speed={p.speed} />,
+    aerospace: <JetPreview wingspan={p.wingspan} fuselageLength={p.fuselageLength} altitude={p.altitude} airspeed={p.airspeed} engines={p.engines} />,
+    marine: <VesselPreview length={p.length} beam={p.beam} displacement={p.displacement} speed={p.speed} hullDrag={p.hullDrag} />,
+    biomedical: <HeartPreview bpm={p.bpm} strokeVolume={p.strokeVolume} systolic={p.systolic} diastolic={p.diastolic} />,
+    industrial: <ConveyorPreview beltSpeed={p.beltSpeed} spindleRpm={p.spindleRpm} throughput={p.throughput} efficiency={p.efficiency} quality={p.quality} />,
     generic: <BeamStructure params={params} />,
   };
 
