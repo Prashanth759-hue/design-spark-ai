@@ -4,7 +4,7 @@ import {
   Cpu, Car, Building2, Cog, CircuitBoard, ArrowRight, Sparkles, Zap, Globe,
   Brain, Rocket, Atom, Satellite, Microscope, Waves, Shield, BotMessageSquare,
   Plane, Ship, Factory, Hammer, Lightbulb, HeartPulse, Leaf, Gauge, LogIn,
-  CheckCircle2, Star, Quote, Github, Twitter, Linkedin
+  CheckCircle2, Star, Quote, Github, Twitter, Linkedin, Terminal, Download, Copy
 } from "lucide-react";
 
 const DOMAINS = [
@@ -72,6 +72,7 @@ const Landing = () => {
             <a href="#features" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary">Features</a>
             <a href="#how" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary">How it works</a>
             <a href="#testimonials" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary">Customers</a>
+            <a href="#run-local" className="px-3 py-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary">Run locally</a>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate("/admin/login")}
@@ -250,6 +251,91 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Run Locally */}
+      <section id="run-local" className="bg-gradient-to-b from-background to-secondary/30 border-y border-border">
+        <div className="max-w-7xl mx-auto px-6 py-24">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
+              <Terminal className="w-3.5 h-3.5" /> Developer Guide
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">Run CDAI on your machine</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Clone, install, and launch the full platform locally in under two minutes.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Prerequisites */}
+            <div className="bg-card border border-border rounded-2xl p-7">
+              <div className="flex items-center gap-2 mb-5">
+                <Download className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Prerequisites</h3>
+              </div>
+              <ul className="space-y-3 text-sm">
+                {[
+                  { t: "Node.js 18+", d: "Install via nvm — `nvm install 20`" },
+                  { t: "npm or bun", d: "Bundled with Node, or use bun for faster installs" },
+                  { t: "Git", d: "For cloning the repository" },
+                  { t: "Modern browser", d: "Chrome, Edge, Firefox or Safari (WebGL 2)" },
+                ].map((p) => (
+                  <li key={p.t} className="flex gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-foreground">{p.t}</div>
+                      <div className="text-muted-foreground text-xs mt-0.5">{p.d}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Steps / Commands */}
+            <div className="bg-card border border-border rounded-2xl p-7">
+              <div className="flex items-center gap-2 mb-5">
+                <Terminal className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Setup commands</h3>
+              </div>
+              <div className="space-y-4 font-mono text-xs">
+                {[
+                  { label: "1. Clone the repository", cmd: "git clone <YOUR_GIT_URL> && cd cdai-platform" },
+                  { label: "2. Install dependencies", cmd: "npm install" },
+                  { label: "3. Configure environment", cmd: "cp .env.example .env  # add VITE_SUPABASE_URL & VITE_SUPABASE_PUBLISHABLE_KEY" },
+                  { label: "4. Start the dev server", cmd: "npm run dev" },
+                  { label: "5. Open in browser", cmd: "# → http://localhost:5173" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <div className="text-[11px] font-sans font-semibold text-muted-foreground mb-1.5">{s.label}</div>
+                    <div className="group relative bg-background border border-border rounded-lg px-3 py-2.5 flex items-center justify-between gap-3">
+                      <code className="text-foreground break-all">{s.cmd}</code>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(s.cmd)}
+                        className="shrink-0 opacity-40 hover:opacity-100 transition-opacity"
+                        title="Copy"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 max-w-5xl mx-auto bg-gradient-to-br from-primary/5 via-card to-violet-500/5 border border-border rounded-2xl p-7">
+            <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Supabase backend (optional)
+            </h4>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              The deployed version runs on Lovable Cloud (Supabase). For local full-stack development, create a free Supabase
+              project, run the migrations in <code className="font-mono text-xs bg-secondary px-1.5 py-0.5 rounded">supabase/migrations</code>,
+              then set <code className="font-mono text-xs bg-secondary px-1.5 py-0.5 rounded">VITE_SUPABASE_URL</code> and{" "}
+              <code className="font-mono text-xs bg-secondary px-1.5 py-0.5 rounded">VITE_SUPABASE_PUBLISHABLE_KEY</code> in your <code className="font-mono text-xs bg-secondary px-1.5 py-0.5 rounded">.env</code>.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Without a backend, the 3D viewport, landing page, and UI flows still work — only auth and persistence are disabled.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-7xl mx-auto px-6 py-24 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -301,6 +387,7 @@ const Landing = () => {
                 <li><a href="#domains" className="hover:text-foreground transition-colors">Domains</a></li>
                 <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 <li><a href="#how" className="hover:text-foreground transition-colors">Workflow</a></li>
+                <li><a href="#run-local" className="hover:text-foreground transition-colors">Run locally</a></li>
               </ul>
             </div>
             <div>

@@ -13,7 +13,7 @@ import { parseDesignParams } from "@/lib/parseDesignParams";
 import { parseDesignBlock, designBlockToDrawingType, designBlockToDrawingParams, designBlockTo3DParams, DesignBlock } from "@/lib/parseDesignBlock";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows } from "lucide-react";
+import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows, Home } from "lucide-react";
 import { usePresence } from "@/hooks/usePresence";
 import { PresenceAvatars } from "@/components/PresenceAvatars";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
@@ -203,6 +203,10 @@ const Index = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
               <span className="text-[10px] text-muted-foreground">Online</span>
             </div>
+            <button onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" title="Back to Landing / Login">
+              <Home className="w-3 h-3" /> Home
+            </button>
             <button onClick={handleSignOut}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Sign Out">
               <LogOut className="w-3.5 h-3.5" />
