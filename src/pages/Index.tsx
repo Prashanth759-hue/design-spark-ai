@@ -13,7 +13,9 @@ import { parseDesignParams } from "@/lib/parseDesignParams";
 import { parseDesignBlock, designBlockToDrawingType, designBlockToDrawingParams, designBlockTo3DParams, DesignBlock } from "@/lib/parseDesignBlock";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory } from "lucide-react";
+import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows } from "lucide-react";
+import { usePresence } from "@/hooks/usePresence";
+import { PresenceAvatars } from "@/components/PresenceAvatars";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 import { DEFAULT_AI_MODEL } from "@/lib/aiModels";
 
@@ -31,6 +33,7 @@ const Index = () => {
   const [activeDesignBlock, setActiveDesignBlock] = useState<DesignBlock | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_AI_MODEL);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { users: presenceUsers, me } = usePresence(activeDesignBlock ? `design:${activeDesignBlock.domain}` : "lobby");
 
   // Use design block for 3D params if available, otherwise fall back to regex parser
   const designParams = useMemo(() => {
@@ -175,6 +178,11 @@ const Index = () => {
               className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-accent/30 text-accent-foreground hover:bg-accent/50 transition-colors font-semibold">
               <LayoutDashboard className="w-3 h-3" /> Dashboard
             </button>
+            <button onClick={() => navigate("/compare")}
+              className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-gradient-to-r from-primary/20 to-violet-500/20 text-foreground hover:from-primary/30 hover:to-violet-500/30 transition-colors font-semibold border border-primary/20">
+              <GitCompareArrows className="w-3 h-3" /> Compare
+            </button>
+            <PresenceAvatars users={presenceUsers} meId={me?.user_id} />
             <button onClick={() => setShowConfigurator(true)}
               className="flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-sm">
               🎨 3D Configurator

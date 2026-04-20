@@ -20,6 +20,7 @@ import AerospaceSimulator from "./pages/AerospaceSimulator";
 import MarineSimulator from "./pages/MarineSimulator";
 import BiomedicalSimulator from "./pages/BiomedicalSimulator";
 import IndustrialSimulator from "./pages/IndustrialSimulator";
+import ComparePage from "./pages/ComparePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => {
                 <Route path="/marine" element={<MarineSimulator />} />
                 <Route path="/biomedical" element={<BiomedicalSimulator />} />
                 <Route path="/industrial" element={<IndustrialSimulator />} />
+                <Route path="/compare" element={<ComparePage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
               </>
             )}
