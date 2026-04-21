@@ -39,16 +39,16 @@ export function JetPreview({
   });
 
   const fuselage = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#f1f5f9", metalness: 0.55, roughness: 0.25, clearcoat: 0.85, clearcoatRoughness: 0.15,
+    color: "#f8fafc", metalness: 0.7, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 2.5,
   }), []);
   const accent = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#1e40af", metalness: 0.4, roughness: 0.35,
+    color: "#1e40af", metalness: 0.5, roughness: 0.28, clearcoat: 0.8, envMapIntensity: 2,
   }), []);
   const engine = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#94a3b8", metalness: 0.95, roughness: 0.18,
+    color: "#94a3b8", metalness: 1, roughness: 0.14, envMapIntensity: 3,
   }), []);
   const window = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: "#0f172a", metalness: 0.2, roughness: 0.1, transmission: 0.3, thickness: 0.1,
+    color: "#0a0f1c", metalness: 0.3, roughness: 0.05, transmission: 0.35, thickness: 0.1, ior: 1.5, envMapIntensity: 3,
   }), []);
 
   return (
@@ -100,6 +100,32 @@ export function JetPreview({
       </mesh>
       <mesh castShadow position={[-0.1, -0.05, -span / 2]} rotation={[0, 0, 0]} material={accent}>
         <boxGeometry args={[0.18, 0.12, 0.15]} />
+      </mesh>
+
+      {/* Navigation lights — green starboard, red port */}
+      <mesh position={[-0.1, -0.05, span / 2 + 0.08]}>
+        <sphereGeometry args={[0.025, 12, 12]} />
+        <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={5} toneMapped={false} />
+      </mesh>
+      <pointLight position={[-0.1, -0.05, span / 2 + 0.08]} intensity={0.6} color="#22c55e" distance={2} />
+      <mesh position={[-0.1, -0.05, -span / 2 - 0.08]}>
+        <sphereGeometry args={[0.025, 12, 12]} />
+        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={5} toneMapped={false} />
+      </mesh>
+      <pointLight position={[-0.1, -0.05, -span / 2 - 0.08]} intensity={0.6} color="#ef4444" distance={2} />
+
+      {/* White strobe on tail */}
+      <mesh position={[-len * 0.55, 0.6, 0]}>
+        <sphereGeometry args={[0.022, 12, 12]} />
+        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={6} toneMapped={false} />
+      </mesh>
+
+      {/* Livery cheatline along fuselage */}
+      <mesh position={[0, 0.02, 0.33]} rotation={[0, 0, Math.PI / 2]} material={accent}>
+        <cylinderGeometry args={[0.012, 0.012, len * 0.7, 8]} />
+      </mesh>
+      <mesh position={[0, 0.02, -0.33]} rotation={[0, 0, Math.PI / 2]} material={accent}>
+        <cylinderGeometry args={[0.012, 0.012, len * 0.7, 8]} />
       </mesh>
 
       {/* Horizontal stabilizer */}

@@ -69,10 +69,13 @@ export function Turbine({ rpm = 500, color = "#22d3ee", autoRotate = true }: {
               <boxGeometry args={[0.05, 0.42, 0.035]} />
               <meshPhysicalMaterial
                 color={color}
-                metalness={0.75}
-                roughness={0.15}
+                metalness={0.9}
+                roughness={0.12}
+                envMapIntensity={3}
+                clearcoat={0.6}
                 emissive={color}
-                emissiveIntensity={rpm > 1200 ? 0.3 : rpm > 600 ? 0.1 : 0.02}
+                emissiveIntensity={rpm > 1200 ? 0.6 : rpm > 600 ? 0.25 : 0.04}
+                toneMapped={false}
               />
             </mesh>
           );
@@ -147,8 +150,20 @@ export function Turbine({ rpm = 500, color = "#22d3ee", autoRotate = true }: {
       {/* ── Exhaust nozzle / diffuser ── */}
       <mesh position={[0, 0, -1.0]} castShadow>
         <cylinderGeometry args={[0.3, 0.5, 0.25, 24]} />
-        <meshPhysicalMaterial color="#44403c" metalness={0.7} roughness={0.3} />
+        <meshPhysicalMaterial color="#3f3a36" metalness={0.85} roughness={0.35}
+          emissive={rpm > 1500 ? "#f97316" : rpm > 800 ? "#ea580c" : "#000000"}
+          emissiveIntensity={rpm > 1500 ? 0.6 : rpm > 800 ? 0.2 : 0} />
       </mesh>
+
+      {/* Heat haze ring at exhaust mouth */}
+      {rpm > 800 && (
+        <mesh position={[0, 0, -1.13]} rotation={[0, 0, 0]}>
+          <ringGeometry args={[0.35, 0.5, 32]} />
+          <meshBasicMaterial color="#f97316" transparent opacity={rpm > 1500 ? 0.45 : 0.2} side={THREE.DoubleSide} />
+        </mesh>
+      )}
+
+      {/* Outer casing — brushed steel sheen */}
 
       {/* ── Base plate ── */}
       <mesh position={[0, -1.5, -0.3]} receiveShadow>

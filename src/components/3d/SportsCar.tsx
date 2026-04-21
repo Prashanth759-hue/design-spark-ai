@@ -16,6 +16,18 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
   const windowColor = config.windowTint > 0.5 ? "#1a1a2e" : "#93c5fd";
   const paintRoughness = config.paintFinish === "matte" ? 0.65 : config.paintFinish === "satin" ? 0.3 : 0.08;
   const paintMetalness = config.paintFinish === "matte" ? 0.1 : 0.82;
+  // Realistic paint: high envMapIntensity, anisotropic clearcoat, slight color shift
+  const paintProps = {
+    color: bodyColor,
+    metalness: paintMetalness,
+    roughness: paintRoughness,
+    clearcoat: config.paintFinish === "gloss" ? 1 : 0.3,
+    clearcoatRoughness: 0.03,
+    envMapIntensity: 3.2,
+    sheen: config.paintFinish === "gloss" ? 0.4 : 0,
+    sheenRoughness: 0.6,
+    sheenColor: "#ffffff",
+  } as const;
 
   // Lamborghini-style supercar proportions
   const wb = 2.7;
@@ -48,34 +60,34 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
 
       {/* Main body — very flat & wide */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.04} position={[0, bodyY, 0]} castShadow receiveShadow>
-        <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={config.paintFinish === "gloss" ? 1 : 0.3} clearcoatRoughness={0.04} envMapIntensity={2} />
+        <meshPhysicalMaterial {...paintProps} />
       </RoundedBox>
 
       {/* Wide rear haunches */}
       {[-1, 1].map((s) => (
         <RoundedBox key={s} args={[bodyLen * 0.38, bodyH * 1.3, bodyW * 0.18]} radius={0.04}
           position={[wb / 2 * 0.6, bodyY + 0.02, s * (bodyW / 2 + 0.04)]} castShadow>
-          <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2} />
+          <meshPhysicalMaterial {...paintProps} />
         </RoundedBox>
       ))}
       {/* Front fender flares */}
       {[-1, 1].map((s) => (
         <RoundedBox key={s} args={[bodyLen * 0.32, bodyH * 1.2, bodyW * 0.16]} radius={0.04}
           position={[-wb / 2 * 0.65, bodyY + 0.02, s * (bodyW / 2 + 0.04)]} castShadow>
-          <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2} />
+          <meshPhysicalMaterial {...paintProps} />
         </RoundedBox>
       ))}
 
       {/* Low sloping hood */}
       <RoundedBox args={[bodyLen * 0.38, bodyH * 0.5, bodyW * 0.9]} radius={0.035}
         position={[-bodyLen * 0.28, bodyY + bodyH * 0.25, 0]} rotation={[0, 0, 0.18]} castShadow>
-        <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2} />
+        <meshPhysicalMaterial {...paintProps} />
       </RoundedBox>
 
       {/* Engine cover / rear deck */}
       <RoundedBox args={[bodyLen * 0.22, bodyH * 0.6, bodyW * 0.85]} radius={0.03}
         position={[bodyLen * 0.33, bodyY + bodyH * 0.18, 0]} rotation={[0, 0, -0.12]} castShadow>
-        <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2} />
+        <meshPhysicalMaterial {...paintProps} />
       </RoundedBox>
 
       {/* Low cabin */}
@@ -178,7 +190,7 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
       {[-1, 1].map((s) => (
         <RoundedBox key={s} args={[0.1, 0.055, 0.04]} radius={0.01}
           position={[-wb * 0.15, cabinY - cabinH * 0.15, s * bodyW * 0.47]}>
-          <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} />
+          <meshPhysicalMaterial {...paintProps} />
         </RoundedBox>
       ))}
 
@@ -186,9 +198,33 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
       {[-1, 1].map((s) => (
         <mesh key={s} position={[bodyLen * 0.5, bodyY - bodyH * 0.25, s * bodyW * 0.28]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.032, 0.04, 0.1, 20]} />
-          <meshPhysicalMaterial color="#888" metalness={0.95} roughness={0.05} />
+          <meshPhysicalMaterial color="#aaaaaa" metalness={1} roughness={0.08} envMapIntensity={3} />
         </mesh>
       ))}
+
+      {/* Heat-burnt exhaust ring (blue/purple anodised look) */}
+      {[-1, 1].map((s) => (
+        <mesh key={`burn-${s}`} position={[bodyLen * 0.51, bodyY - bodyH * 0.25, s * bodyW * 0.28]} rotation={[0, 0, Math.PI / 2]}>
+          <torusGeometry args={[0.04, 0.005, 8, 24]} />
+          <meshStandardMaterial color="#312e81" metalness={0.9} roughness={0.3} emissive="#1e1b4b" emissiveIntensity={0.4} />
+        </mesh>
+      ))}
+
+      {/* Front grille mesh — black honeycomb suggestion */}
+      <mesh position={[-bodyLen * 0.495, bodyY - bodyH * 0.05, 0]}>
+        <boxGeometry args={[0.015, bodyH * 0.55, bodyW * 0.55]} />
+        <meshPhysicalMaterial color="#0a0a0a" metalness={0.5} roughness={0.6} />
+      </mesh>
+      {/* Grille frame */}
+      <RoundedBox args={[0.03, bodyH * 0.65, bodyW * 0.6]} radius={0.01} position={[-bodyLen * 0.49, bodyY - bodyH * 0.04, 0]}>
+        <meshPhysicalMaterial color="#1a1a1a" metalness={0.85} roughness={0.2} envMapIntensity={2} />
+      </RoundedBox>
+
+      {/* Carbon-fiber roof panel */}
+      <mesh position={[0, cabinY + cabinH * 0.5 + 0.001, 0]}>
+        <boxGeometry args={[wb * 0.42, 0.008, bodyW * 0.7]} />
+        <meshPhysicalMaterial color="#0d0d0f" metalness={0.55} roughness={0.35} clearcoat={0.85} clearcoatRoughness={0.15} envMapIntensity={2} />
+      </mesh>
     </group>
   );
 }
@@ -203,12 +239,17 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
       {/* Tire */}
       <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.42, 28, 64]} />
-        <meshPhysicalMaterial color="#111" roughness={0.9} metalness={0.05} />
+        <meshPhysicalMaterial color="#0a0a0a" roughness={0.95} metalness={0.02} sheen={0.2} sheenColor="#222222" />
+      </mesh>
+      {/* Tire sidewall lettering hint */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, wheelW * 0.21]}>
+        <torusGeometry args={[wheelR * 0.85, 0.005, 6, 32]} />
+        <meshStandardMaterial color="#3a3a3a" roughness={0.7} />
       </mesh>
       {/* Rim face */}
       <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
         <cylinderGeometry args={[wheelR * 0.6, wheelR * 0.6, wheelW * 0.32, 32]} />
-        <meshPhysicalMaterial color={rimColor} metalness={0.95} roughness={0.06} clearcoat={1} envMapIntensity={2.5} />
+        <meshPhysicalMaterial color={rimColor} metalness={1} roughness={0.05} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={3.5} />
       </mesh>
       {/* Spokes */}
       {Array.from({ length: spokeCount }).map((_, si) => {
@@ -217,7 +258,7 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         return (
           <mesh key={si} rotation={[Math.PI / 2, 0, ang + (isTurbine ? 0.3 : 0)]} castShadow>
             <boxGeometry args={[0.03, wheelW * 0.28, wheelR * 0.52]} />
-            <meshPhysicalMaterial color={rimColor} metalness={0.92} roughness={0.08} />
+            <meshPhysicalMaterial color={rimColor} metalness={1} roughness={0.07} envMapIntensity={3} />
           </mesh>
         );
       })}
@@ -229,12 +270,17 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
       {/* Brake disc */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <cylinderGeometry args={[wheelR * 0.44, wheelR * 0.44, wheelW * 0.07, 24]} />
-        <meshPhysicalMaterial color="#6b6b6b" metalness={0.7} roughness={0.38} />
+        <meshPhysicalMaterial color="#9ca3af" metalness={0.95} roughness={0.25} envMapIntensity={2} />
+      </mesh>
+      {/* Brake disc drilled holes (visual rings) */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.001]}>
+        <ringGeometry args={[wheelR * 0.28, wheelR * 0.32, 32]} />
+        <meshStandardMaterial color="#1a1a1a" />
       </mesh>
       {/* Brake caliper */}
       <mesh position={[0, -wheelR * 0.38, 0]}>
         <boxGeometry args={[wheelW * 0.3, wheelR * 0.22, wheelR * 0.14]} />
-        <meshPhysicalMaterial color="#ef4444" metalness={0.6} roughness={0.3} />
+        <meshPhysicalMaterial color="#dc2626" metalness={0.4} roughness={0.45} clearcoat={0.6} clearcoatRoughness={0.2} emissive="#7f1d1d" emissiveIntensity={0.05} />
       </mesh>
     </group>
   );

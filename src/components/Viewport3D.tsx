@@ -1,6 +1,7 @@
 import { useState, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows, AccumulativeShadows, RandomizedLight, BakeShadows } from "@react-three/drei";
+import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 import { Box, X, Maximize2, Minimize2 } from "lucide-react";
 import { DesignParams } from "@/lib/parseDesignParams";
@@ -56,17 +57,21 @@ function SceneContent({ params }: { params: DesignParams }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[5, 3.5, 5]} fov={40} />
-      <Environment preset="studio" background={false} />
+      {/* High-quality HDRI: city skyline gives strong, varied reflections on paint/glass/metal */}
+      <Environment preset="city" background={false} environmentIntensity={1.15} />
 
-      <directionalLight position={[8, 12, 6]} intensity={1.8} castShadow
+      {/* Key sun light — warm, sharp shadows */}
+      <directionalLight position={[8, 12, 6]} intensity={2.4} castShadow
         shadow-mapSize-width={2048} shadow-mapSize-height={2048}
         shadow-camera-far={30} shadow-camera-left={-8} shadow-camera-right={8}
         shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-0.0005}
-        color="#fff5e6" />
-      <directionalLight position={[-5, 6, -4]} intensity={0.4} color="#b0d4f1" />
-      <pointLight position={[-4, 3, -5]} intensity={0.6} color="#22d3ee" distance={15} decay={2} />
-      <ambientLight intensity={0.15} color="#e0e7ff" />
-      <hemisphereLight args={["#87ceeb", "#3d2b1f", 0.3]} />
+        color="#fff1d6" />
+      {/* Cool fill from sky */}
+      <directionalLight position={[-6, 7, -5]} intensity={0.55} color="#a8c8ff" />
+      {/* Rim light for silhouette pop */}
+      <directionalLight position={[3, 4, -8]} intensity={0.7} color="#fef3c7" />
+      <ambientLight intensity={0.08} color="#e0e7ff" />
+      <hemisphereLight args={["#bfdbfe", "#3d2b1f", 0.25]} />
 
       {structureMap[params.structureType] || <BeamStructure params={params} />}
 
@@ -86,7 +91,13 @@ function SceneContent({ params }: { params: DesignParams }) {
         />
       )}
 
-      <ContactShadows position={[0, -0.9, 0]} opacity={0.5} scale={14} blur={2.5} far={6} color="#1a1a2e" />
+      {/* Soft realistic ground shadow */}
+      <ContactShadows position={[0, -0.9, 0]} opacity={0.65} scale={16} blur={2.2} far={8} color="#000000" resolution={1024} />
+      {/* Subtle glossy floor reflection — only the dark plane, no shine on grid */}
+      <mesh position={[0, -0.901, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[6, 64]} />
+        <meshPhysicalMaterial color="#0a0e1a" metalness={0.1} roughness={0.55} clearcoat={0.3} envMapIntensity={0.6} />
+      </mesh>
 
       <Grid position={[0, -0.9, 0]} args={[10, 10]} cellSize={0.5} cellThickness={0.5}
         cellColor="#1e3a5f" sectionSize={2} sectionThickness={1} sectionColor="#22d3ee"
@@ -177,7 +188,13 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
             </div>
 
             <div className="flex-1">
-              <Canvas shadows gl={{ antialias: true, toneMapping: 3, toneMappingExposure: 1.1 }}>
+              <Canvas shadows dpr={[1, 2]}
+                gl={{
+                  antialias: true,
+                  toneMapping: THREE.ACESFilmicToneMapping,
+                  toneMappingExposure: 1.25,
+                  outputColorSpace: THREE.SRGBColorSpace,
+                }}>
                 <Suspense fallback={null}>
                   <SceneContent params={params} />
                 </Suspense>
