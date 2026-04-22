@@ -23,18 +23,18 @@ export function BeamStructure({ params }: { params: DesignParams }) {
     <group ref={groupRef}>
       {/* I-Beam: Top flange */}
       <RoundedBox args={[params.beamLength, flangeH, params.beamWidth]} radius={0.01} position={[0, 0.5 + params.beamHeight / 2 - flangeH / 2, 0]} castShadow receiveShadow>
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.15} clearcoat={0.3} clearcoatRoughness={0.2} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.28} clearcoat={0.4} clearcoatRoughness={0.25} envMapIntensity={2.8} />
       </RoundedBox>
 
       {/* I-Beam: Bottom flange */}
       <RoundedBox args={[params.beamLength, flangeH, params.beamWidth]} radius={0.01} position={[0, 0.5 - params.beamHeight / 2 + flangeH / 2, 0]} castShadow receiveShadow>
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.15} clearcoat={0.3} clearcoatRoughness={0.2} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.28} clearcoat={0.4} clearcoatRoughness={0.25} envMapIntensity={2.8} />
       </RoundedBox>
 
       {/* I-Beam: Web */}
       <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[params.beamLength, params.beamHeight - flangeH * 2, webW]} />
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.8} roughness={0.2} envMapIntensity={1} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.32} envMapIntensity={2.5} />
       </mesh>
 
       {/* Stiffener plates along beam */}

@@ -18,7 +18,8 @@ export function BusVehicle({ color = "#1e40af", autoRotate = true }: { color?: s
     <group ref={groupRef} position={[0, -0.5, 0]}>
       {/* Main body */}
       <RoundedBox args={[bodyL, bodyH, bodyW]} radius={0.06} position={[0, bodyH / 2 + wheelR, 0]} castShadow>
-        <meshPhysicalMaterial color={color} metalness={0.3} roughness={0.4} clearcoat={0.6} />
+        <meshPhysicalMaterial color={color} metalness={0.55} roughness={0.18} clearcoat={1} clearcoatRoughness={0.05}
+          envMapIntensity={3.2} sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.5} />
       </RoundedBox>
 
       {/* Roof */}
@@ -92,6 +93,16 @@ export function BusVehicle({ color = "#1e40af", autoRotate = true }: { color?: s
       <mesh position={[bodyL * 0.15, wheelR + bodyH * 0.25, bodyW / 2 + 0.015]}>
         <boxGeometry args={[0.35, bodyH * 0.55, 0.01]} />
         <meshPhysicalMaterial color={color} metalness={0.4} roughness={0.3} />
+      </mesh>
+
+      {/* License plates */}
+      <mesh position={[bodyL / 2 + 0.025, wheelR + bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.07, 0.28]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[-bodyL / 2 - 0.025, wheelR + bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.07, 0.28]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
       </mesh>
     </group>
   );

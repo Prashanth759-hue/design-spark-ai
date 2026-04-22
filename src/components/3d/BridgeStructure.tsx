@@ -103,7 +103,7 @@ export function BridgeStructure({ params }: { params: DesignParams }) {
         return (
           <mesh key={`arch-${i}`} position={[mx, my, 0]} rotation={[0, 0, angle]} castShadow>
             <cylinderGeometry args={[0.045, 0.045, len, 16]} />
-            <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.12} clearcoat={0.4} envMapIntensity={1.3} />
+            <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.22} clearcoat={0.5} clearcoatRoughness={0.15} envMapIntensity={2.8} />
           </mesh>
         );
       })}
@@ -118,7 +118,7 @@ export function BridgeStructure({ params }: { params: DesignParams }) {
         return (
           <mesh key={`cable-${i}`} position={[x, 0.5 + deckThickness / 2 + cableLen / 2, 0]} castShadow>
             <cylinderGeometry args={[0.01, 0.01, cableLen, 8]} />
-            <meshPhysicalMaterial color="#cbd5e1" metalness={0.9} roughness={0.08} />
+            <meshPhysicalMaterial color="#cbd5e1" metalness={0.95} roughness={0.18} envMapIntensity={2.5} />
           </mesh>
         );
       })}

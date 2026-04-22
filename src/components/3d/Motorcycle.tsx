@@ -94,11 +94,13 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
       {/* Fuel tank - sculpted */}
       <mesh position={[0.12, 0.72, 0]} castShadow>
         <sphereGeometry args={[0.2, 24, 24]} />
-        <meshPhysicalMaterial color={color} metalness={0.55} roughness={0.15} clearcoat={1} clearcoatRoughness={0.03} envMapIntensity={2.5} />
+        <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.1} clearcoat={1} clearcoatRoughness={0.02}
+          envMapIntensity={3.5} sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.4} />
       </mesh>
       <mesh position={[0.12, 0.71, 0]} castShadow>
         <boxGeometry args={[0.42, 0.2, 0.28]} />
-        <meshPhysicalMaterial color={color} metalness={0.55} roughness={0.15} clearcoat={1} clearcoatRoughness={0.03} envMapIntensity={2.5} />
+        <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.1} clearcoat={1} clearcoatRoughness={0.02}
+          envMapIntensity={3.5} sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.4} />
       </mesh>
       {/* Tank ridge */}
       <mesh position={[0.12, 0.82, 0]}>
@@ -209,7 +211,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
       {/* Tail section / cowl */}
       <mesh position={[-0.5, 0.65, 0]} castShadow>
         <boxGeometry args={[0.22, 0.1, 0.16]} />
-        <meshPhysicalMaterial color={color} metalness={0.5} roughness={0.2} clearcoat={1} />
+        <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.1} clearcoat={1} clearcoatRoughness={0.03} envMapIntensity={3.2} />
       </mesh>
 
       {/* Tail light - LED strip */}

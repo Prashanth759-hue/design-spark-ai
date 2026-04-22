@@ -81,7 +81,8 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
       {/* Main body */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.07} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={2.2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.03} envMapIntensity={3.5}
+          sheen={0.5} sheenColor="#ffffff" sheenRoughness={0.4} />
       </RoundedBox>
 
       {/* Long graceful hood */}
@@ -222,6 +223,26 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
           <meshPhysicalMaterial color="#999" metalness={0.95} roughness={0.04} />
         </mesh>
       ))}
+
+      {/* License plates */}
+      <mesh position={[-bodyLen * 0.502, bodyY - bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.075, 0.3]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[bodyLen * 0.502, bodyY - bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.075, 0.3]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Roundel badge — front */}
+      <mesh position={[-bodyLen * 0.502, bodyY + bodyH * 0.25, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.045, 0.045, 0.005, 32]} />
+        <meshPhysicalMaterial color="#f1f5f9" metalness={0.98} roughness={0.03} clearcoat={1} envMapIntensity={3} />
+      </mesh>
+      {/* Roundel badge — rear */}
+      <mesh position={[bodyLen * 0.502, bodyY + bodyH * 0.25, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.005, 32]} />
+        <meshPhysicalMaterial color="#f1f5f9" metalness={0.98} roughness={0.03} clearcoat={1} envMapIntensity={3} />
+      </mesh>
     </group>
   );
 }

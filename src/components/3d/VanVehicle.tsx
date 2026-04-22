@@ -77,14 +77,16 @@ export function VanVehicle({ config, autoRotate }: { config: CarConfig; autoRota
       {/* Main body — tall box shape */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.08} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={2.2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={3.2}
+          sheen={0.35} sheenColor="#ffffff" sheenRoughness={0.55} />
       </RoundedBox>
 
       {/* Tall cabin walls */}
       <RoundedBox args={[bodyLen * 0.92, cabinH, bodyW * 0.98]} radius={0.07}
         position={[bodyLen * 0.02, cabinY, 0]} castShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} envMapIntensity={2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} envMapIntensity={3.2}
+          sheen={0.35} sheenColor="#ffffff" sheenRoughness={0.55} />
       </RoundedBox>
 
       {/* Roof */}
@@ -198,6 +200,21 @@ export function VanVehicle({ config, autoRotate }: { config: CarConfig; autoRota
         <WheelAssembly key={i} position={pos} wheelR={wheelR} wheelW={wheelW}
           rimColor={rimColor} rimStyle={config.rimStyle} />
       ))}
+
+      {/* License plates */}
+      <mesh position={[-bodyLen * 0.498, cabinY - cabinH * 0.42, 0]}>
+        <boxGeometry args={[0.005, 0.08, 0.32]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[bodyLen * 0.502, cabinY - cabinH * 0.3, 0]}>
+        <boxGeometry args={[0.005, 0.08, 0.32]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Badge */}
+      <mesh position={[-bodyLen * 0.498, cabinY - cabinH * 0.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.035, 0.035, 0.006, 24]} />
+        <meshPhysicalMaterial color="#e5e7eb" metalness={0.98} roughness={0.04} clearcoat={1} />
+      </mesh>
     </group>
   );
 }
