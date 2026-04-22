@@ -192,7 +192,7 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                 <div className="relative">
                   <button
                     onClick={() => setShowEnvMenu((v) => !v)}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 transition-colors mr-1 capitalize"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-accent text-accent-foreground hover:bg-accent/80 transition-colors mr-1 capitalize"
                     title="Lighting mood"
                   >
                     <Sun className="w-3 h-3" />
