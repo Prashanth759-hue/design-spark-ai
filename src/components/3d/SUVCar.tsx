@@ -77,7 +77,8 @@ export function SUVCar({ config, autoRotate }: { config: CarConfig; autoRotate: 
       {/* Main body — tall and boxy */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.08} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.05} envMapIntensity={1.8} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={3.2}
+          sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.5} />
       </RoundedBox>
 
       {/* Wide fender flares front */}

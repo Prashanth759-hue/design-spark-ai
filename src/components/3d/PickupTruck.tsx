@@ -80,7 +80,8 @@ export function PickupTruck({ config, autoRotate }: { config: CarConfig; autoRot
       <RoundedBox args={[bodyLen * 0.42, bodyH, bodyW]} radius={0.06}
         position={[-bodyLen * 0.18, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={2.2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={3.2}
+          sheen={0.35} sheenColor="#ffffff" sheenRoughness={0.5} />
       </RoundedBox>
 
       {/* Hood */}
@@ -121,7 +122,8 @@ export function PickupTruck({ config, autoRotate }: { config: CarConfig; autoRot
       <RoundedBox args={[bodyLen * 0.42, bodyH * 0.8, bodyW * 0.98]} radius={0.04}
         position={[bodyLen * 0.26, bodyY - 0.02, 0]} castShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} envMapIntensity={2.2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} envMapIntensity={3.2}
+          sheen={0.35} sheenColor="#ffffff" sheenRoughness={0.5} />
       </RoundedBox>
 
       {/* Bed interior (darker) */}
