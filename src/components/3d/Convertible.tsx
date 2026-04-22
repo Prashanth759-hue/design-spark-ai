@@ -74,7 +74,8 @@ export function Convertible({ config, autoRotate }: { config: CarConfig; autoRot
       {/* Main body — low and elegant */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.05} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.3} clearcoatRoughness={0.04} envMapIntensity={2.2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.3} clearcoatRoughness={0.03} envMapIntensity={3.5}
+          sheen={0.45} sheenColor="#ffffff" sheenRoughness={0.45} />
       </RoundedBox>
 
       {/* Long sculpted hood */}
@@ -194,6 +195,21 @@ export function Convertible({ config, autoRotate }: { config: CarConfig; autoRot
           <meshPhysicalMaterial color="#888" metalness={0.95} roughness={0.05} />
         </mesh>
       ))}
+
+      {/* License plates */}
+      <mesh position={[-bodyLen * 0.502, bodyY - bodyH * 0.05, 0]}>
+        <boxGeometry args={[0.005, 0.07, 0.28]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[bodyLen * 0.502, bodyY - bodyH * 0.05, 0]}>
+        <boxGeometry args={[0.005, 0.07, 0.28]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Badge */}
+      <mesh position={[-bodyLen * 0.502, bodyY + bodyH * 0.25, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.035, 0.035, 0.005, 32]} />
+        <meshPhysicalMaterial color="#e5e7eb" metalness={0.98} roughness={0.03} clearcoat={1} envMapIntensity={3} />
+      </mesh>
 
       {/* Wheels */}
       {wheelPositions.map((pos, i) => (

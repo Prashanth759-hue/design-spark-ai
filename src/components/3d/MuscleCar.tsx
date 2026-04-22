@@ -77,7 +77,8 @@ export function MuscleCar({ config, autoRotate }: { config: CarConfig; autoRotat
       {/* Wide muscular body */}
       <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.065} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
-          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={2} />
+          clearcoat={config.paintFinish === "gloss" ? 1 : 0.2} clearcoatRoughness={0.04} envMapIntensity={3.2}
+          sheen={0.35} sheenColor="#ffffff" sheenRoughness={0.5} />
       </RoundedBox>
 
       {/* Wide front fenders — muscular bulge */}
@@ -227,6 +228,21 @@ export function MuscleCar({ config, autoRotate }: { config: CarConfig; autoRotat
           <meshPhysicalMaterial color="#888" metalness={0.96} roughness={0.04} />
         </mesh>
       ))}
+
+      {/* License plates */}
+      <mesh position={[-bodyLen * 0.502, bodyY - bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.075, 0.3]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      <mesh position={[bodyLen * 0.502, bodyY - bodyH * 0.15, 0]}>
+        <boxGeometry args={[0.005, 0.075, 0.3]} />
+        <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Badge */}
+      <mesh position={[-bodyLen * 0.502, bodyY + bodyH * 0.2, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.006, 24]} />
+        <meshPhysicalMaterial color="#e5e7eb" metalness={0.98} roughness={0.04} clearcoat={1} />
+      </mesh>
     </group>
   );
 }
