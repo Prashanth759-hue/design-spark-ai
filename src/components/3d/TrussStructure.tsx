@@ -22,21 +22,21 @@ export function TrussStructure({ params }: { params: DesignParams }) {
       {/* Top chord — angle steel profile */}
       <mesh position={[0, 0.5 + trussH, 0]} castShadow>
         <boxGeometry args={[span + 0.02, memberR * 3, trussD * 0.12]} />
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.12} clearcoat={0.3} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.25} clearcoat={0.4} clearcoatRoughness={0.2} envMapIntensity={2.8} />
       </mesh>
       <mesh position={[0, 0.5 + trussH, 0]} castShadow>
         <boxGeometry args={[span + 0.02, trussD * 0.12, memberR * 3]} />
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.12} clearcoat={0.3} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.25} clearcoat={0.4} clearcoatRoughness={0.2} envMapIntensity={2.8} />
       </mesh>
 
       {/* Bottom chord */}
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[span + 0.02, memberR * 3, trussD * 0.12]} />
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.12} clearcoat={0.3} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.25} clearcoat={0.4} clearcoatRoughness={0.2} envMapIntensity={2.8} />
       </mesh>
       <mesh position={[0, 0.5, 0]} castShadow>
         <boxGeometry args={[span + 0.02, trussD * 0.12, memberR * 3]} />
-        <meshPhysicalMaterial color={params.materialColor} metalness={0.85} roughness={0.12} clearcoat={0.3} envMapIntensity={1.2} />
+        <meshPhysicalMaterial color={params.materialColor} metalness={0.9} roughness={0.25} clearcoat={0.4} clearcoatRoughness={0.2} envMapIntensity={2.8} />
       </mesh>
 
       {/* Vertical and diagonal web members */}

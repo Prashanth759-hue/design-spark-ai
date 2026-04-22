@@ -9,6 +9,9 @@ export function Villa({ color = "#f5f0e8", autoRotate = true }: { color?: string
     if (groupRef.current && autoRotate) groupRef.current.rotation.y += d * 0.06;
   });
 
+  // Pre-computed warm interior light pattern (some windows lit, some dark)
+  const litWindows = [true, false, true, true, false];
+
   return (
     <group ref={groupRef} position={[0, -0.85, 0]}>
       {/* ── Main building volume ── */}
@@ -49,7 +52,8 @@ export function Villa({ color = "#f5f0e8", autoRotate = true }: { color?: string
           <mesh position={pos as [number, number, number]} castShadow>
             <boxGeometry args={[0.55, 0.8, 0.015]} />
             <meshPhysicalMaterial color="#7dd3fc" metalness={0.08} roughness={0.01}
-              transmission={0.55} thickness={0.4} ior={1.52} envMapIntensity={2} />
+              transmission={0.55} thickness={0.4} ior={1.52} envMapIntensity={3.2}
+              emissive={litWindows[i] ? "#fde68a" : "#000000"} emissiveIntensity={litWindows[i] ? 0.6 : 0} />
           </mesh>
           {/* Window frame */}
           <mesh position={[pos[0], pos[1], pos[2] + 0.005]}>
@@ -70,7 +74,8 @@ export function Villa({ color = "#f5f0e8", autoRotate = true }: { color?: string
           <mesh position={pos as [number, number, number]} castShadow>
             <boxGeometry args={[0.48, 0.55, 0.015]} />
             <meshPhysicalMaterial color="#7dd3fc" metalness={0.08} roughness={0.01}
-              transmission={0.55} thickness={0.4} ior={1.52} />
+              transmission={0.55} thickness={0.4} ior={1.52} envMapIntensity={3.2}
+              emissive={litWindows[i + 3] ? "#fde68a" : "#000000"} emissiveIntensity={litWindows[i + 3] ? 0.7 : 0} />
           </mesh>
           <mesh position={[pos[0], pos[1], pos[2] + 0.01]}>
             <boxGeometry args={[0.005, 0.55, 0.005]} />

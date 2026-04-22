@@ -17,6 +17,12 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
   const totalH = floors * floorH;
   const baseY = -totalH / 2;
 
+  // Deterministic lit-window pattern using golden-ratio hash (warm interior glow)
+  const isLit = (f: number, w: number, side: number) => {
+    const h = (f * 73 + w * 37 + side * 191) * 0.6180339887;
+    return (h - Math.floor(h)) > 0.55;
+  };
+
   return (
     <group ref={groupRef}>
       {/* Foundation */}
@@ -51,6 +57,7 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
             {/* Glass curtain wall — front face */}
             {Array.from({ length: 4 }).map((_, w) => {
               const wx = -width * 0.33 + w * width * 0.22;
+              const lit = isLit(f, w, 0);
               return (
                 <group key={`win-${f}-${w}`}>
                   {/* Glass pane */}
@@ -63,7 +70,9 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
                       transmission={0.5}
                       thickness={0.5}
                       ior={1.52}
-                      envMapIntensity={2}
+                      envMapIntensity={3.2}
+                      emissive={lit ? "#fde68a" : "#000000"}
+                      emissiveIntensity={lit ? 0.7 : 0}
                     />
                   </mesh>
                   {/* Window frame */}
@@ -78,11 +87,13 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
             {/* Glass — side face */}
             {Array.from({ length: 3 }).map((_, w) => {
               const wz = -depth * 0.25 + w * depth * 0.25;
+              const lit = isLit(f, w, 1);
               return (
                 <group key={`swin-${f}-${w}`}>
                   <mesh position={[width * 0.5 + 0.005, y + floorH / 2 + 0.035, wz]} castShadow>
                     <boxGeometry args={[0.015, floorH * 0.6, depth * 0.18]} />
-                    <meshPhysicalMaterial color="#bfdbfe" metalness={0.1} roughness={0.02} transmission={0.5} thickness={0.5} ior={1.52} envMapIntensity={2} />
+                    <meshPhysicalMaterial color="#bfdbfe" metalness={0.1} roughness={0.02} transmission={0.5} thickness={0.5} ior={1.52} envMapIntensity={3.2}
+                      emissive={lit ? "#fde68a" : "#000000"} emissiveIntensity={lit ? 0.7 : 0} />
                   </mesh>
                   <mesh position={[width * 0.5 + 0.012, y + floorH / 2 + 0.035, wz]}>
                     <boxGeometry args={[0.008, floorH * 0.62, depth * 0.19]} />
