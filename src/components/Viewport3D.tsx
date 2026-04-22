@@ -3,7 +3,9 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows, AccumulativeShadows, RandomizedLight, BakeShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, X, Maximize2, Minimize2 } from "lucide-react";
+import { Box, X, Maximize2, Minimize2, Sun } from "lucide-react";
+import { EffectComposer, Bloom, SSAO, Vignette } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import { DesignParams } from "@/lib/parseDesignParams";
 import { BeamStructure } from "@/components/3d/BeamStructure";
 import { BridgeStructure } from "@/components/3d/BridgeStructure";
@@ -30,8 +32,10 @@ const DEFAULT_CAR_CONFIG: CarConfig = {
   bodyKit: "stock",
 };
 
+type EnvPreset = "city" | "sunset" | "studio" | "warehouse";
+
 /* ──────────────────────── Scene ──────────────────────── */
-function SceneContent({ params }: { params: DesignParams }) {
+function SceneContent({ params, envPreset }: { params: DesignParams; envPreset: EnvPreset }) {
   const carConfig: CarConfig = {
     ...DEFAULT_CAR_CONFIG,
     bodyColor: params.materialColor || DEFAULT_CAR_CONFIG.bodyColor,
@@ -57,19 +61,22 @@ function SceneContent({ params }: { params: DesignParams }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[5, 3.5, 5]} fov={40} />
-      {/* High-quality HDRI: city skyline gives strong, varied reflections on paint/glass/metal */}
-      <Environment preset="city" background={false} environmentIntensity={1.15} />
+      {/* High-quality HDRI — user-selectable mood */}
+      <Environment preset={envPreset} background={false}
+        environmentIntensity={envPreset === "sunset" ? 1.4 : envPreset === "studio" ? 1.0 : 1.15} />
 
-      {/* Key sun light — warm, sharp shadows */}
-      <directionalLight position={[8, 12, 6]} intensity={2.4} castShadow
+      {/* Key sun light — color shifts with environment */}
+      <directionalLight position={[8, 12, 6]} intensity={envPreset === "sunset" ? 2.8 : 2.4} castShadow
         shadow-mapSize-width={2048} shadow-mapSize-height={2048}
         shadow-camera-far={30} shadow-camera-left={-8} shadow-camera-right={8}
         shadow-camera-top={8} shadow-camera-bottom={-8} shadow-bias={-0.0005}
-        color="#fff1d6" />
+        color={envPreset === "sunset" ? "#ffb070" : envPreset === "studio" ? "#ffffff" : "#fff1d6"} />
       {/* Cool fill from sky */}
-      <directionalLight position={[-6, 7, -5]} intensity={0.55} color="#a8c8ff" />
+      <directionalLight position={[-6, 7, -5]} intensity={0.55}
+        color={envPreset === "sunset" ? "#7da8d8" : "#a8c8ff"} />
       {/* Rim light for silhouette pop */}
-      <directionalLight position={[3, 4, -8]} intensity={0.7} color="#fef3c7" />
+      <directionalLight position={[3, 4, -8]} intensity={0.7}
+        color={envPreset === "sunset" ? "#ff9050" : "#fef3c7"} />
       <ambientLight intensity={0.08} color="#e0e7ff" />
       <hemisphereLight args={["#bfdbfe", "#3d2b1f", 0.25]} />
 
@@ -105,6 +112,15 @@ function SceneContent({ params }: { params: DesignParams }) {
 
       <OrbitControls enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15}
         maxPolarAngle={Math.PI / 2.1} rotateSpeed={0.5} />
+
+      {/* Cinematic post-processing: bloom on emissives + SSAO + vignette */}
+      <EffectComposer multisampling={0} enableNormalPass>
+        <SSAO blendFunction={BlendFunction.MULTIPLY} samples={16} radius={0.12} intensity={28}
+          luminanceInfluence={0.6} bias={0.025} worldDistanceThreshold={1} worldDistanceFalloff={0.5}
+          worldProximityThreshold={0.4} worldProximityFalloff={0.2} />
+        <Bloom intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.3} mipmapBlur radius={0.7} />
+        <Vignette offset={0.32} darkness={0.55} eskil={false} blendFunction={BlendFunction.NORMAL} />
+      </EffectComposer>
     </>
   );
 }
@@ -132,6 +148,8 @@ const TYPE_LABELS: Record<string, string> = {
 const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Viewport3DProps) => {
   const params = designParams || DEFAULT_PARAMS;
   const [expanded, setExpanded] = useState(false);
+  const [envPreset, setEnvPreset] = useState<EnvPreset>("city");
+  const [showEnvMenu, setShowEnvMenu] = useState(false);
 
   const dimensionLabel =
     params.structureType === "car"
@@ -170,6 +188,30 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                {/* HDRI mood toggle */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowEnvMenu((v) => !v)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 transition-colors mr-1 capitalize"
+                    title="Lighting mood"
+                  >
+                    <Sun className="w-3 h-3" />
+                    {envPreset}
+                  </button>
+                  {showEnvMenu && (
+                    <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border rounded-md shadow-lg py-1 min-w-[110px]">
+                      {(["city", "sunset", "studio", "warehouse"] as EnvPreset[]).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => { setEnvPreset(p); setShowEnvMenu(false); }}
+                          className={`w-full text-left px-3 py-1 text-[11px] capitalize hover:bg-primary/10 transition-colors ${envPreset === p ? "text-primary font-semibold" : "text-foreground"}`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {params.structureType === "car" && onOpenConfigurator && (
                   <button
                     onClick={onOpenConfigurator}
@@ -196,7 +238,7 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                   outputColorSpace: THREE.SRGBColorSpace,
                 }}>
                 <Suspense fallback={null}>
-                  <SceneContent params={params} />
+                  <SceneContent params={params} envPreset={envPreset} />
                 </Suspense>
               </Canvas>
             </div>
