@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows, AccumulativeShadows, RandomizedLight, BakeShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, X, Maximize2, Minimize2, Sun } from "lucide-react";
+import { Box, X, Maximize2, Minimize2, Sun, Plane } from "lucide-react";
 import { EffectComposer, Bloom, SSAO, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { DesignParams } from "@/lib/parseDesignParams";
@@ -16,6 +16,9 @@ import { SportsCar } from "@/components/3d/SportsCar";
 import { CarConfig } from "@/components/CarConfigurator";
 import { RobotArmPreview } from "@/components/3d/previews/RobotArmPreview";
 import { JetPreview } from "@/components/3d/previews/JetPreview";
+import { AirlinerPreview } from "@/components/3d/previews/AirlinerPreview";
+import { Helicopter } from "@/components/3d/Helicopter";
+import { Rocket } from "@/components/3d/Rocket";
 import { VesselPreview } from "@/components/3d/previews/VesselPreview";
 import { HeartPreview } from "@/components/3d/previews/HeartPreview";
 import { ConveyorPreview } from "@/components/3d/previews/ConveyorPreview";
@@ -33,9 +36,10 @@ const DEFAULT_CAR_CONFIG: CarConfig = {
 };
 
 type EnvPreset = "city" | "sunset" | "studio" | "warehouse";
+export type AeroVariant = "airliner" | "jet" | "helicopter" | "rocket";
 
 /* ──────────────────────── Scene ──────────────────────── */
-function SceneContent({ params, envPreset }: { params: DesignParams; envPreset: EnvPreset }) {
+function SceneContent({ params, envPreset, aeroVariant }: { params: DesignParams; envPreset: EnvPreset; aeroVariant: AeroVariant }) {
   const carConfig: CarConfig = {
     ...DEFAULT_CAR_CONFIG,
     bodyColor: params.materialColor || DEFAULT_CAR_CONFIG.bodyColor,
@@ -44,6 +48,16 @@ function SceneContent({ params, envPreset }: { params: DesignParams; envPreset: 
   // Pull domain-specific params from designParams (forwarded by Index via designBlockTo3DParams)
   const p = (params as any).rawParams || {};
 
+  const aerospaceModel = (() => {
+    switch (aeroVariant) {
+      case "helicopter": return <Helicopter />;
+      case "rocket": return <Rocket />;
+      case "jet": return <JetPreview wingspan={p.wingspan} fuselageLength={p.fuselageLength} altitude={p.altitude} airspeed={p.airspeed} engines={p.engines} />;
+      case "airliner":
+      default: return <AirlinerPreview wingspan={p.wingspan} fuselageLength={p.fuselageLength} altitude={p.altitude} airspeed={p.airspeed} engines={p.engines} />;
+    }
+  })();
+
   const structureMap: Record<string, JSX.Element> = {
     car: <SportsCar config={carConfig} autoRotate={false} />,
     bridge: <BridgeStructure params={params} />,
@@ -51,7 +65,7 @@ function SceneContent({ params, envPreset }: { params: DesignParams; envPreset: 
     truss: <TrussStructure params={params} />,
     beam: <BeamStructure params={params} />,
     robotics: <RobotArmPreview reach={p.reach} payload={p.payload} joints={p.joints} speed={p.speed} />,
-    aerospace: <JetPreview wingspan={p.wingspan} fuselageLength={p.fuselageLength} altitude={p.altitude} airspeed={p.airspeed} engines={p.engines} />,
+    aerospace: aerospaceModel,
     marine: <VesselPreview length={p.length} beam={p.beam} displacement={p.displacement} speed={p.speed} hullDrag={p.hullDrag} />,
     biomedical: <HeartPreview bpm={p.bpm} strokeVolume={p.strokeVolume} systolic={p.systolic} diastolic={p.diastolic} />,
     industrial: <ConveyorPreview beltSpeed={p.beltSpeed} spindleRpm={p.spindleRpm} throughput={p.throughput} efficiency={p.efficiency} quality={p.quality} />,
@@ -150,6 +164,8 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
   const [expanded, setExpanded] = useState(false);
   const [envPreset, setEnvPreset] = useState<EnvPreset>("city");
   const [showEnvMenu, setShowEnvMenu] = useState(false);
+  const [aeroVariant, setAeroVariant] = useState<AeroVariant>("airliner");
+  const [showAeroMenu, setShowAeroMenu] = useState(false);
 
   const dimensionLabel =
     params.structureType === "car"
@@ -188,6 +204,32 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                {/* Aerospace model selector — only when aerospace */}
+                {params.structureType === "aerospace" && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowAeroMenu((v) => !v)}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 transition-colors mr-1 capitalize"
+                      title="Aerospace model"
+                    >
+                      <Plane className="w-3 h-3" />
+                      {aeroVariant}
+                    </button>
+                    {showAeroMenu && (
+                      <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border rounded-md shadow-lg py-1 min-w-[120px]">
+                        {(["airliner", "jet", "helicopter", "rocket"] as AeroVariant[]).map((v) => (
+                          <button
+                            key={v}
+                            onClick={() => { setAeroVariant(v); setShowAeroMenu(false); }}
+                            className={`w-full text-left px-3 py-1 text-[11px] capitalize hover:bg-sky-500/10 transition-colors ${aeroVariant === v ? "text-sky-600 font-semibold" : "text-foreground"}`}
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* HDRI mood toggle */}
                 <div className="relative">
                   <button
@@ -238,7 +280,7 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                   outputColorSpace: THREE.SRGBColorSpace,
                 }}>
                 <Suspense fallback={null}>
-                  <SceneContent params={params} envPreset={envPreset} />
+                  <SceneContent params={params} envPreset={envPreset} aeroVariant={aeroVariant} />
                 </Suspense>
               </Canvas>
             </div>

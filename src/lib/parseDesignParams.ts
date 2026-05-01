@@ -1,4 +1,4 @@
-export type StructureType = "beam" | "car" | "building" | "bridge" | "truss" | "generic";
+export type StructureType = "beam" | "car" | "building" | "bridge" | "truss" | "generic" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial";
 
 export interface DesignParams {
   structureType: StructureType;
@@ -47,6 +47,11 @@ const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
   building: ["building", "floor", "storey", "story", "foundation", "slab", "tower", "skyscraper", "house", "apartment", "office block"],
   truss: ["truss", "warren truss", "pratt truss", "howe truss", "roof truss", "space frame", "lattice"],
   beam: ["beam", "girder", "i-beam", "cantilever", "joist"],
+  robotics: [],
+  aerospace: [],
+  marine: [],
+  biomedical: [],
+  industrial: [],
   generic: [],
 };
 
