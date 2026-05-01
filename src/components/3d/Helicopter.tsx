@@ -61,11 +61,13 @@ export function Helicopter({ rotorRpm = 320, autoRotate = true }: { rotorRpm?: n
       <mesh castShadow position={[0.7, 0.62, 0]} material={glass} scale={[0.85, 0.7, 1.05]}>
         <sphereGeometry args={[0.5, 32, 24]} />
       </mesh>
-      {/* Canopy frame */}
-      <mesh position={[0.7, 0.62, 0]} scale={[0.86, 0.71, 1.06]}>
-        <sphereGeometry args={[0.5, 16, 12, 0, Math.PI, 0, Math.PI]} />
-        <meshPhysicalMaterial color="#111827" metalness={0.7} roughness={0.3} wireframe wireframeLinewidth={2} transparent opacity={0.4} />
-      </mesh>
+      {/* Canopy frame ribs */}
+      {[0, Math.PI / 3, -Math.PI / 3].map((r, i) => (
+        <mesh key={i} position={[0.7, 0.62, 0]} rotation={[0, 0, r]}>
+          <torusGeometry args={[0.42, 0.012, 6, 24, Math.PI]} />
+          <meshPhysicalMaterial color="#1f2937" metalness={0.7} roughness={0.3} />
+        </mesh>
+      ))}
 
       {/* Engine cowling on top */}
       <mesh castShadow position={[0, 0.95, 0]} material={paint}>
@@ -139,8 +141,8 @@ export function Helicopter({ rotorRpm = 320, autoRotate = true }: { rotorRpm?: n
 
       {/* Tail rotor */}
       <group ref={tailRotor} position={[-2.45, 0.62, 0.08]}>
-        <mesh material={metal}>
-          <cylinderGeometry args={[0.025, 0.025, 0.08, 12]} rotation-x={Math.PI / 2} />
+        <mesh material={metal} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.025, 0.025, 0.08, 12]} />
         </mesh>
         {[0, 1].map((i) => (
           <mesh key={i} castShadow rotation={[0, 0, i * Math.PI / 2]} material={dark}>
