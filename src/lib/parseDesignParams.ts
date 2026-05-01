@@ -1,4 +1,4 @@
-export type StructureType = "beam" | "car" | "building" | "bridge" | "truss" | "generic";
+export type StructureType = "beam" | "car" | "building" | "bridge" | "truss" | "generic" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial";
 
 export interface DesignParams {
   structureType: StructureType;
