@@ -42,16 +42,16 @@ const MATERIAL_COLORS: Record<string, { main: string; column: string; base: stri
 };
 
 const STRUCTURE_KEYWORDS: Record<StructureType, string[]> = {
-  car: ["car design", "design a car", "vehicle design", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis design", "bev design", "ev design", "motor vehicle", "truck design", "pickup truck"],
+  car: ["car", "sedan", "suv", "coupe", "hatchback", "automobile", "drivetrain", "wheelbase", "chassis", "bev", "ev ", "motor vehicle", "truck", "pickup", "bus", "van", "motorcycle", "convertible", "muscle car", "sports car", "luxury sedan", "vehicle"],
   bridge: ["bridge", "abutment", "pier", "deck slab", "viaduct", "overpass"],
-  building: ["building", "floor", "storey", "story", "foundation", "slab", "tower", "skyscraper", "house", "apartment", "office block"],
+  building: ["building", "storey", "story", "skyscraper", "house", "villa", "apartment", "office block", "tower"],
   truss: ["truss", "warren truss", "pratt truss", "howe truss", "roof truss", "space frame", "lattice"],
   beam: ["beam", "girder", "i-beam", "cantilever", "joist"],
-  robotics: [],
-  aerospace: [],
-  marine: [],
-  biomedical: [],
-  industrial: [],
+  robotics: ["robot", "robotic arm", "robot arm", "manipulator", "cobot", "end effector", "gripper"],
+  aerospace: ["airplane", "aeroplane", "aircraft", "airliner", "boeing", "airbus", "jet", "fighter jet", "helicopter", "chopper", "rotorcraft", "rocket", "launch vehicle", "falcon", "spacecraft", "drone", "uav", "turbine", "plane"],
+  marine: ["ship", "vessel", "boat", "yacht", "tanker", "submarine", "hull", "marine"],
+  biomedical: ["heart", "implant", "prosthetic", "stent", "valve", "biomedical", "medical device"],
+  industrial: ["conveyor", "factory line", "assembly line", "cnc", "spindle", "production line", "industrial"],
   generic: [],
 };
 
@@ -67,7 +67,7 @@ function detectStructureType(text: string): StructureType {
   };
 
   const scores: Record<string, number> = {};
-  const types: StructureType[] = ["car", "truss", "bridge", "building", "beam"];
+  const types: StructureType[] = ["aerospace", "marine", "robotics", "biomedical", "industrial", "car", "truss", "bridge", "building", "beam"];
 
   for (const type of types) {
     let score = 0;

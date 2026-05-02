@@ -164,8 +164,19 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
   const [expanded, setExpanded] = useState(false);
   const [envPreset, setEnvPreset] = useState<EnvPreset>("city");
   const [showEnvMenu, setShowEnvMenu] = useState(false);
-  const [aeroVariant, setAeroVariant] = useState<AeroVariant>("airliner");
+  const [userAeroVariant, setUserAeroVariant] = useState<AeroVariant | null>(null);
   const [showAeroMenu, setShowAeroMenu] = useState(false);
+
+  // Auto-detect aerospace variant from the label / raw params unless user picked one
+  const detectAero = (): AeroVariant => {
+    const txt = `${params.label || ""} ${(params as any).rawParams?.type || ""} ${(params as any).rawParams?.kind || ""}`.toLowerCase();
+    if (/helicopter|chopper|rotorcraft/.test(txt)) return "helicopter";
+    if (/rocket|falcon|launch|spacecraft/.test(txt)) return "rocket";
+    if (/fighter|jet\b/.test(txt) && !/airliner/.test(txt)) return "jet";
+    return "airliner";
+  };
+  const aeroVariant: AeroVariant = userAeroVariant ?? detectAero();
+  const setAeroVariant = (v: AeroVariant) => setUserAeroVariant(v);
 
   const dimensionLabel =
     params.structureType === "car"
