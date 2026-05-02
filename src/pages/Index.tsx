@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Sidebar from "@/components/Sidebar";
@@ -6,18 +6,19 @@ import ChatMessage, { Message } from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import TypingIndicator from "@/components/TypingIndicator";
-import Viewport3D from "@/components/Viewport3D";
 import { CarConfigurator } from "@/components/CarConfigurator";
 import { streamChat, ChatMsg } from "@/lib/streamChat";
 import { parseDesignParams } from "@/lib/parseDesignParams";
 import { parseDesignBlock, designBlockToDrawingType, designBlockToDrawingParams, designBlockTo3DParams, DesignBlock } from "@/lib/parseDesignBlock";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows, Home } from "lucide-react";
+import { Box, LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows, Home } from "lucide-react";
 import { usePresence } from "@/hooks/usePresence";
 import { PresenceAvatars } from "@/components/PresenceAvatars";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 import { DEFAULT_AI_MODEL } from "@/lib/aiModels";
+
+const Viewport3D = lazy(() => import("@/components/Viewport3D"));
 
 const Index = () => {
   const navigate = useNavigate();
