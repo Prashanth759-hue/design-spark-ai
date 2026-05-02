@@ -252,12 +252,18 @@ const Index = () => {
           </div>
 
           {/* 3D Viewport */}
-          <Viewport3D
-            visible={show3D}
-            onToggle={() => setShow3D(!show3D)}
-            designParams={designParams}
-            onOpenConfigurator={() => setShowConfigurator(true)}
-          />
+          <Suspense fallback={show3D ? (
+            <div className="w-[380px] border-l border-border bg-background h-full flex items-center justify-center text-xs text-muted-foreground">
+              <Box className="w-4 h-4 mr-2 text-primary" /> Loading 3D View
+            </div>
+          ) : null}>
+            <Viewport3D
+              visible={show3D}
+              onToggle={() => setShow3D(!show3D)}
+              designParams={designParams}
+              onOpenConfigurator={() => setShowConfigurator(true)}
+            />
+          </Suspense>
         </div>
       </main>
 
