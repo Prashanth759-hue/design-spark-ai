@@ -18,6 +18,17 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "register") {
+      const trimmed = fullName.trim();
+      if (trimmed.length < 5 || trimmed.length > 10) {
+        toast({
+          title: "Invalid Username",
+          description: "Username must be between 5 and 10 characters.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setLoading(true);
 
     try {
@@ -28,8 +39,12 @@ const Auth = () => {
           options: { data: { full_name: fullName } },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "You are now signed in." });
-        navigate("/");
+        // Sign out (in case auto-confirm is on) and redirect to login
+        await supabase.auth.signOut();
+        toast({ title: "Account created!", description: "Please sign in to continue." });
+        setMode("login");
+        setPassword("");
+        setFullName("");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -113,10 +128,13 @@ const Auth = () => {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter your name"
+                      placeholder="5-10 characters"
+                      minLength={5}
+                      maxLength={10}
                       className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
                       required={mode === "register"}
                     />
+                    <p className="mt-1 text-[10px] text-muted-foreground">Username must be 5–10 characters.</p>
                   </div>
                 </motion.div>
               )}
