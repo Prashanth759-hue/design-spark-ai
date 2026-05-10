@@ -57,11 +57,11 @@ function SceneContent({ params, envPreset, aeroVariant }: { params: DesignParams
   // Pick a realistic car model based on the AI-detected vehicle type
   const vehicleNode = (() => {
     const t = `${(p.type || "")} ${(params.label || "")}`.toLowerCase();
-    if (/motorcycle|bike/.test(t)) return <Motorcycle />;
-    if (/bus\b/.test(t)) return <BusVehicle />;
-    if (/\bvan\b/.test(t)) return <VanVehicle />;
-    if (/pickup|truck/.test(t)) return <PickupTruck />;
-    if (/suv/.test(t)) return <SUVCar />;
+    if (/motorcycle|bike/.test(t)) return <Motorcycle color={carConfig.bodyColor} autoRotate={false} />;
+    if (/bus\b/.test(t)) return <BusVehicle color={carConfig.bodyColor} autoRotate={false} />;
+    if (/\bvan\b/.test(t)) return <VanVehicle config={carConfig} autoRotate={false} />;
+    if (/pickup|truck/.test(t)) return <PickupTruck config={carConfig} autoRotate={false} />;
+    if (/suv/.test(t)) return <SUVCar config={carConfig} autoRotate={false} />;
     if (/convertible|roadster/.test(t)) return <Convertible config={carConfig} autoRotate={false} />;
     if (/muscle/.test(t)) return <MuscleCar config={carConfig} autoRotate={false} />;
     if (/sedan|luxury/.test(t)) return <LuxurySedan config={carConfig} autoRotate={false} />;
