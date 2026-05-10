@@ -44,9 +44,14 @@ The JSON must be valid (no trailing commas, double quotes only). Schemas per dom
 <!--DESIGN:{"domain":"vehicle","type":"sports_car|sedan|suv|pickup|motorcycle|bus|convertible|muscle|van","params":{"wheelbase":2850,"trackWidth":1580,"bodyLength":4500,"bodyHeight":1400,"groundClearance":165,"overhangFront":900,"overhangRear":750,"curbWeight":1520,"material":"UHSS/Al"}}-->
 \`\`\`
 
-### Building
+### Building (vertical structures only — offices, towers, houses)
 \`\`\`
 <!--DESIGN:{"domain":"building","type":"office|skyscraper|villa|factory|apartment","params":{"floors":10,"height":32000,"width":18000,"depth":12000,"floorHeight":3200,"material":"Reinforced Concrete","facade":"glass_curtain|brick|concrete|steel_panel"}}-->
+\`\`\`
+
+### Bridge (horizontal civil structures — DO NOT confuse with buildings)
+\`\`\`
+<!--DESIGN:{"domain":"bridge","type":"beam|truss|arch|cable_stayed|suspension","params":{"span":40000,"deckLength":80000,"deckWidth":12000,"clearance":6000,"towerHeight":35000,"material":"Structural Steel S355","loadClass":"HL-93"}}-->
 \`\`\`
 
 ### Machine
@@ -91,6 +96,8 @@ The JSON must be valid (no trailing commas, double quotes only). Schemas per dom
 4. The DESIGN block drives BOTH the 3D simulation AND the engineering blueprint — they MUST match.
 5. Convert user units silently: "1.2m reach" → "reach":1200. "60m wingspan" → "wingspan":60000.
 6. Pick a realistic \`type\` based on the user's words (e.g. "skyscraper" → type:"skyscraper", "robot arm" → type:"6dof_arm").
+7. **CRITICAL — Bridge vs Building:** A "bridge" (viaduct, overpass, span, footbridge, suspension bridge, truss bridge, cable-stayed) is **NEVER** a building. Use \`"domain":"bridge"\` for any bridge request. Use \`"domain":"building"\` only for vertical occupied structures (towers, houses, offices). If the user types contain words like "bridge", "span", "viaduct", "overpass", "girder bridge", "deck", "abutment", "pier (bridge)" → emit \`domain:"bridge"\`.
+8. **Vehicle type matching:** Pick the most accurate vehicle \`type\` from {sports_car, sedan, suv, pickup, motorcycle, bus, convertible, muscle, van} based on user words (e.g. "muscle car" → muscle, "pickup truck" → pickup, "luxury sedan" → sedan).
 
 ## AI Capabilities you can announce inline
 - **[Generative Design]** — when proposing 2-3 topology variants
