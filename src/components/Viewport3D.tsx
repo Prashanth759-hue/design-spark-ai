@@ -1,11 +1,9 @@
 import { useState, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows, AccumulativeShadows, RandomizedLight, BakeShadows } from "@react-three/drei";
+import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 import { Box, X, Maximize2, Minimize2, Sun, Plane } from "lucide-react";
-import { EffectComposer, Bloom, SSAO, Vignette } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
 import { DesignParams } from "@/lib/parseDesignParams";
 import { BeamStructure } from "@/components/3d/BeamStructure";
 import { BridgeStructure } from "@/components/3d/BridgeStructure";
@@ -127,14 +125,7 @@ function SceneContent({ params, envPreset, aeroVariant }: { params: DesignParams
       <OrbitControls enableDamping dampingFactor={0.08} minDistance={2} maxDistance={15}
         maxPolarAngle={Math.PI / 2.1} rotateSpeed={0.5} />
 
-      {/* Cinematic post-processing: bloom on emissives + SSAO + vignette */}
-      <EffectComposer multisampling={0} enableNormalPass>
-        <SSAO blendFunction={BlendFunction.MULTIPLY} samples={16} radius={0.12} intensity={28}
-          luminanceInfluence={0.6} bias={0.025} worldDistanceThreshold={1} worldDistanceFalloff={0.5}
-          worldProximityThreshold={0.4} worldProximityFalloff={0.2} />
-        <Bloom intensity={0.55} luminanceThreshold={0.85} luminanceSmoothing={0.3} mipmapBlur radius={0.7} />
-        <Vignette offset={0.32} darkness={0.55} eskil={false} blendFunction={BlendFunction.NORMAL} />
-      </EffectComposer>
+      {/* Keep the core viewport dependency-light so local installs do not white-screen when optional effects are missing. */}
     </>
   );
 }
@@ -282,8 +273,8 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
               </div>
             </div>
 
-            <div className="flex-1">
-              <Canvas shadows dpr={[1, 2]}
+            <div className="flex-1 h-full w-full min-h-0">
+              <Canvas className="h-full w-full" shadows dpr={[1, 2]}
                 gl={{
                   antialias: true,
                   toneMapping: THREE.ACESFilmicToneMapping,
