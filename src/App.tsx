@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { Component, lazy, Suspense, useState, useEffect, type ReactNode } from "react";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +47,32 @@ const BackendConfigNotice = () => (
   </div>
 );
 
+class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-xl rounded-lg border border-destructive/30 bg-card p-6 shadow-sm">
+          <h1 className="text-lg font-semibold text-foreground mb-2">Application failed to load</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+            Restart the local dev server after pulling the latest changes. If this remains, the message below identifies the exact module/runtime error.
+          </p>
+          <pre className="max-h-48 overflow-auto rounded bg-secondary p-3 text-xs text-foreground whitespace-pre-wrap">
+            {this.state.error.message}
+          </pre>
+        </div>
+      </div>
+    );
+  }
+}
+
 const App = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -87,13 +113,14 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
               {/* Public routes */}
               <Route path="/" element={session ? <Index /> : <Landing />} />
               <Route path="/auth" element={hasBackendConfig ? <Auth /> : <BackendConfigNotice />} />
@@ -117,11 +144,12 @@ const App = () => {
                 </>
               )}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 };
 
