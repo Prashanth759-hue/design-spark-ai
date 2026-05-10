@@ -146,15 +146,23 @@ const Index = () => {
         {/* Header */}
         <header className="flex items-center justify-between h-14 px-4 border-b border-border bg-card shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">AI Design Assistant</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary">v2.0</span>
             {activeDesignBlock && (
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-600">
                 {activeDesignBlock.domain} / {activeDesignBlock.type.replace(/_/g, ' ')}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {/* Home & Sign Out — placed first so they're never clipped */}
+            <button onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" title="Back to Landing / Login">
+              <Home className="w-3 h-3" /> Home
+            </button>
+            <button onClick={handleSignOut}
+              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" title="Sign Out">
+              <LogOut className="w-3 h-3" /> Logout
+            </button>
+            <div className="w-px h-5 bg-border mx-1" />
             {/* Domain simulators */}
             {[
               { route: "/drive", icon: Car, label: "Drive" },
@@ -204,14 +212,6 @@ const Index = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
               <span className="text-[10px] text-muted-foreground">Online</span>
             </div>
-            <button onClick={async () => { await supabase.auth.signOut(); navigate("/"); }}
-              className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" title="Back to Landing / Login">
-              <Home className="w-3 h-3" /> Home
-            </button>
-            <button onClick={handleSignOut}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Sign Out">
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
           </div>
         </header>
 
