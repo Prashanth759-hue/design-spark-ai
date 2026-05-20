@@ -40,11 +40,11 @@ export function parseDesignBlock(messages: { role: string; content: string }[]):
 /**
  * Maps a DesignBlock to the drawing type used by EngineeringDrawing
  */
-export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
-  const map: Record<string, "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
+export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
+  const map: Record<string, "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
     vehicle: "vehicle",
     building: "building",
-    bridge: "building",
+    bridge: "bridge",
     machine: "machine",
     circuit: "circuit",
     robotics: "robotics",

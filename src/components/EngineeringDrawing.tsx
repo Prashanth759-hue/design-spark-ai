@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ExtendedDomainDrawing } from "@/components/engineering/ExtendedDomainDrawing";
 
 interface EngineeringDrawingProps {
-  type: "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial";
+  type: "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial";
   params?: Record<string, number | string>;
 }
 
@@ -877,6 +877,7 @@ export function EngineeringDrawing({ type, params = {} }: EngineeringDrawingProp
   const renderers: Record<string, () => JSX.Element> = {
     vehicle: drawVehicle,
     building: drawBuilding,
+    bridge: () => drawBridge(),
     machine: drawMachine,
     circuit: drawCircuit,
     robotics: () => <ExtendedDomainDrawing type="robotics" params={params} width={w} height={h} margin={margin} />,
