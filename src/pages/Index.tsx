@@ -29,7 +29,7 @@ const Index = () => {
   const [show3D, setShow3D] = useState(false);
   const [showConfigurator, setShowConfigurator] = useState(false);
   const [showDrawing, setShowDrawing] = useState(false);
-  const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial">("vehicle");
+  const [drawingType, setDrawingType] = useState<"vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial">("vehicle");
   const [drawingParams, setDrawingParams] = useState<Record<string, number | string>>({});
   const [activeDesignBlock, setActiveDesignBlock] = useState<DesignBlock | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_AI_MODEL);

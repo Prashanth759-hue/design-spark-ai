@@ -874,6 +874,125 @@ export function EngineeringDrawing({ type, params = {} }: EngineeringDrawingProp
     );
   };
 
+  /* ═══════ BRIDGE ═══════ */
+  const drawBridge = () => {
+    const span = Number(params.span || 40000);
+    const deckLength = Number(params.deckLength || 80000);
+    const deckWidth = Number(params.deckWidth || 12000);
+    const clearance = Number(params.clearance || 6000);
+    const towerHeight = Number(params.towerHeight || 35000);
+    const material = String(params.material || "Structural Steel S355");
+
+    // Elevation
+    const evX = margin + 5, evY = margin + 25, evW = 900, evH = 280;
+    const evScale = (evW - 40) / deckLength;
+    const eBaseY = evY + evH - 50;
+    const deckY = eBaseY - clearance * evScale;
+    const towerY = deckY - towerHeight * evScale;
+    const leftAbut = evX + 20;
+    const rightAbut = leftAbut + deckLength * evScale;
+    const towerLeft = leftAbut + (deckLength - span) / 2 * evScale;
+    const towerRight = rightAbut - (deckLength - span) / 2 * evScale;
+
+    // Plan view
+    const pvX = evX, pvY = evY + evH + 40, pvW = evW, pvH = 110;
+    const pvScale = evScale;
+    const pvCy = pvY + pvH / 2;
+    const deckPlanH = deckWidth * pvScale;
+
+    return (
+      <>
+        {/* ── ELEVATION ── */}
+        <text x={evX} y={evY - 8} fill="#94a3b8" fontSize="10" fontFamily="monospace" fontWeight="bold">ELEVATION (LONGITUDINAL)</text>
+        <rect x={evX} y={evY} width={evW} height={evH} fill="none" stroke="#1e293b" strokeWidth="0.5" />
+
+        {/* Water / ground line */}
+        <line x1={evX + 5} y1={eBaseY} x2={evX + evW - 5} y2={eBaseY} stroke="#4ade80" strokeWidth="0.8" strokeDasharray="6 3" />
+        <text x={evX + 8} y={eBaseY + 10} fill="#4ade80" fontSize="6" fontFamily="monospace">GROUND / WATER LEVEL ±0.000</text>
+
+        {/* Abutments */}
+        {[leftAbut, rightAbut].map((x, i) => (
+          <g key={i}>
+            <rect x={x - 12} y={deckY} width={12 * (i === 0 ? -1 : 1)} height={eBaseY - deckY} fill="none" stroke="#94a3b8" strokeWidth="1" />
+            {crossHatch(i === 0 ? x - 12 : x, deckY, 12, eBaseY - deckY, 3, "#1e3a5f")}
+          </g>
+        ))}
+
+        {/* Towers / pylons (for cable-stayed / suspension / arch) */}
+        {[towerLeft, towerRight].map((x, i) => (
+          <g key={i}>
+            <line x1={x} y1={deckY} x2={x} y2={towerY} stroke="#22d3ee" strokeWidth="2" />
+            <line x1={x - 8} y1={towerY + 6} x2={x + 8} y2={towerY + 6} stroke="#22d3ee" strokeWidth="1.2" />
+            <line x1={x - 6} y1={towerY + 18} x2={x + 6} y2={towerY + 18} stroke="#22d3ee" strokeWidth="0.8" />
+          </g>
+        ))}
+
+        {/* Stay cables (cable-stayed look) */}
+        {[towerLeft, towerRight].map((tx, ti) => {
+          const dir = ti === 0 ? 1 : -1;
+          return Array.from({ length: 6 }).map((_, i) => {
+            const dx = (span * evScale / 12) * (i + 1) * dir;
+            return (
+              <line key={`${ti}-${i}`} x1={tx} y1={towerY + 4}
+                x2={tx + dx} y2={deckY - 2} stroke="#fbbf24" strokeWidth="0.5" />
+            );
+          });
+        })}
+
+        {/* Deck */}
+        <rect x={leftAbut} y={deckY - 4} width={rightAbut - leftAbut} height={8} fill="none" stroke="#22d3ee" strokeWidth="1.5" />
+        <line x1={leftAbut} y1={deckY} x2={rightAbut} y2={deckY} stroke="#22d3ee" strokeWidth="0.4" strokeDasharray="4 2" />
+
+        {/* Railing */}
+        <line x1={leftAbut} y1={deckY - 12} x2={rightAbut} y2={deckY - 12} stroke="#94a3b8" strokeWidth="0.5" />
+        {Array.from({ length: 30 }).map((_, i) => {
+          const x = leftAbut + (i + 0.5) * (rightAbut - leftAbut) / 30;
+          return <line key={i} x1={x} y1={deckY - 4} x2={x} y2={deckY - 12} stroke="#94a3b8" strokeWidth="0.3" />;
+        })}
+
+        {/* Dimensions */}
+        {dimLine(leftAbut, eBaseY + 22, rightAbut, eBaseY + 22, `DECK LENGTH ${deckLength} mm`, "#22d3ee")}
+        {dimLine(towerLeft, eBaseY + 36, towerRight, eBaseY + 36, `MAIN SPAN ${span} mm`, "#fbbf24")}
+        {dimLine(rightAbut + 14, deckY, rightAbut + 14, eBaseY, `CLR ${clearance}`, "#4ade80")}
+        {dimLine(towerRight + 14, towerY, towerRight + 14, deckY, `PYLON ${towerHeight}`, "#f97316")}
+
+        {/* GD&T */}
+        {toleranceBox(evX + 12, evY + evH - 24, "⌖", "0.10", "A")}
+        {surfaceFinish(leftAbut + 60, deckY - 18, "Ra 6.3")}
+
+        {/* ── PLAN ── */}
+        <text x={pvX} y={pvY - 8} fill="#94a3b8" fontSize="10" fontFamily="monospace" fontWeight="bold">PLAN VIEW (DECK)</text>
+        <rect x={pvX} y={pvY} width={pvW} height={pvH} fill="none" stroke="#1e293b" strokeWidth="0.5" />
+
+        <rect x={leftAbut} y={pvCy - deckPlanH / 2} width={rightAbut - leftAbut} height={deckPlanH}
+          fill="none" stroke="#22d3ee" strokeWidth="1.2" />
+        {/* Lane divider */}
+        <line x1={leftAbut} y1={pvCy} x2={rightAbut} y2={pvCy} stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="10 6" />
+        {/* Pier footprints */}
+        {[towerLeft, towerRight].map((x, i) => (
+          <rect key={i} x={x - 6} y={pvCy - deckPlanH / 2 - 6} width={12} height={deckPlanH + 12} fill="none" stroke="#94a3b8" strokeWidth="0.6" />
+        ))}
+        {/* Centerline */}
+        <line x1={leftAbut - 10} y1={pvCy} x2={rightAbut + 10} y2={pvCy} stroke="#334155" strokeWidth="0.4" strokeDasharray="8 3 2 3" />
+
+        {dimLine(leftAbut, pvY + pvH - 14, rightAbut, pvY + pvH - 14, `L ${deckLength}`, "#22d3ee")}
+        {dimLine(rightAbut + 12, pvCy - deckPlanH / 2, rightAbut + 12, pvCy + deckPlanH / 2, `W ${deckWidth}`, "#4ade80")}
+
+        {renderSpecsTable([
+          ["Type", String(params.designType || "Bridge")],
+          ["Deck Length", `${deckLength} mm`],
+          ["Main Span", `${span} mm`],
+          ["Deck Width", `${deckWidth} mm`],
+          ["Clearance", `${clearance} mm`],
+          ["Pylon Ht", `${towerHeight} mm`],
+          ["Material", material],
+          ["Load Class", "AASHTO HL-93"],
+          ["Standard", "AASHTO LRFD"],
+        ])}
+      </>
+    );
+  };
+
   const renderers: Record<string, () => JSX.Element> = {
     vehicle: drawVehicle,
     building: drawBuilding,
