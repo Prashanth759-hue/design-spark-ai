@@ -12,7 +12,7 @@ import { parseDesignParams } from "@/lib/parseDesignParams";
 import { parseDesignBlock, designBlockToDrawingType, designBlockToDrawingParams, designBlockTo3DParams, DesignBlock } from "@/lib/parseDesignBlock";
 import { toast } from "@/hooks/use-toast";
 import { useRef, useMemo } from "react";
-import { Box, LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows, Home } from "lucide-react";
+import { Box, LogOut, Car, Building2, Cog, CircuitBoard, LayoutDashboard, Ruler, BotMessageSquare, Plane, Ship, HeartPulse, Factory, GitCompareArrows, Home, Sparkles, Wand2 } from "lucide-react";
 import { usePresence } from "@/hooks/usePresence";
 import { PresenceAvatars } from "@/components/PresenceAvatars";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
@@ -208,6 +208,34 @@ const Index = () => {
               }`}>
               3D View
             </button>
+            {activeDesignBlock && (
+              <>
+                <button
+                  onClick={() => handleSend(
+                    `Optimize the current ${activeDesignBlock.domain} (${activeDesignBlock.type.replace(/_/g,' ')}) design in real time. Apply [Generative Design] and [RL Adaptation] to reduce weight, improve efficiency, and lower cost while preserving safety factors. Emit a fresh DESIGN block with the optimized parameters and explain each change with numbers.`
+                  )}
+                  className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-emerald-600 hover:from-emerald-500/30 hover:to-cyan-500/30 transition-colors font-semibold border border-emerald-500/20"
+                  title="Run real-time AI optimization on the active design">
+                  <Sparkles className="w-3 h-3" /> Optimize
+                </button>
+                <button
+                  onClick={() => {
+                    const p = activeDesignBlock.params;
+                    const keys = Object.keys(p).slice(0, 6).map(k => `${k}=${p[k]}`).join(", ");
+                    const next = window.prompt(
+                      `Modify "${activeDesignBlock.type}" parameters.\nCurrent: ${keys}\n\nDescribe changes in plain English (e.g. "set floors to 20, width to 25m, facade glass"):`,
+                      ""
+                    );
+                    if (next && next.trim()) {
+                      handleSend(`Update the current ${activeDesignBlock.domain} design: ${next.trim()}. Re-emit the DESIGN block with ALL parameters so the 3D model and blueprint update.`);
+                    }
+                  }}
+                  className="flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded bg-violet-500/15 text-violet-600 hover:bg-violet-500/25 transition-colors font-semibold border border-violet-500/20"
+                  title="Modify parameters with a prompt (CAD-style edit)">
+                  <Wand2 className="w-3 h-3" /> Modify
+                </button>
+              </>
+            )}
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" />
               <span className="text-[10px] text-muted-foreground">Online</span>
