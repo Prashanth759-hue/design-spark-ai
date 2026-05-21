@@ -15,7 +15,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
 
   const wheelR = 0.32;
   const wheelW = 0.11;
-  const wb = 1.45;
+  const wb = 1.55; // slightly longer for realistic proportion
 
   const Wheel = ({ pos, ref: wheelRef }: { pos: [number, number, number]; ref: React.RefObject<THREE.Group> }) => (
     <group position={pos} ref={wheelRef}>
@@ -69,11 +69,12 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
   );
 
   return (
-    <group ref={groupRef} position={[0, -0.25, 0]}>
-      {/* Rear wheel */}
+    // Place the bike so wheel bottoms (y = 0 local) sit on the ground plane
+    <group ref={groupRef} position={[0, -0.6, 0]}>
+      {/* Rear wheel — directly under the seat/swingarm pivot */}
       <Wheel pos={[-wb / 2, wheelR, 0]} ref={rearWheelRef} />
-      {/* Front wheel */}
-      <Wheel pos={[wb / 2, wheelR, 0]} ref={frontWheelRef} />
+      {/* Front wheel — directly under the fork */}
+      <Wheel pos={[ wb / 2, wheelR, 0]} ref={frontWheelRef} />
 
       {/* Frame - main tube */}
       <mesh position={[0.1, 0.55, 0]} rotation={[0, 0, -0.18]} castShadow>
