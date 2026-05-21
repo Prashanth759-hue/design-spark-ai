@@ -18,6 +18,17 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "register") {
+      const name = fullName.trim();
+      if (name.length < 5 || name.length > 10) {
+        toast({
+          title: "Invalid User Name",
+          description: "User name must be between 5 and 10 characters.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     setLoading(true);
 
     try {
@@ -25,11 +36,18 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: { data: { full_name: fullName.trim() } },
         });
         if (error) throw error;
-        toast({ title: "Account created!", description: "You are now signed in." });
-        navigate("/");
+        // Sign out so the user must explicitly log in, then redirect to login form
+        await supabase.auth.signOut();
+        toast({
+          title: "Account created!",
+          description: "Please sign in with your new credentials.",
+        });
+        setMode("login");
+        setPassword("");
+        setFullName("");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -113,11 +131,16 @@ const Auth = () => {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter your name"
+                      placeholder="5-10 characters"
+                      minLength={5}
+                      maxLength={10}
                       className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
                       required={mode === "register"}
                     />
                   </div>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    Must be between 5 and 10 characters.
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>

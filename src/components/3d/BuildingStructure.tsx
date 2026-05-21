@@ -10,12 +10,15 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
     if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
   });
 
-  const width = params.beamWidth * 3;
-  const depth = params.beamWidth * 2.5;
-  const floors = Math.max(2, Math.round(params.columnHeight * 3));
-  const floorH = 0.6;
+  // Keep footprint and overall height small enough to stay fully inside the viewport
+  const width = Math.min(2.2, params.beamWidth * 2.4);
+  const depth = Math.min(1.8, params.beamWidth * 2.0);
+  const floors = Math.max(2, Math.min(7, Math.round(params.columnHeight * 3)));
+  const floorH = 0.4;
   const totalH = floors * floorH;
   const baseY = -totalH / 2;
+  // Auto-fit: if the model is still taller than ~3m, scale it down so the camera frames it
+  const fitScale = Math.min(1, 3 / Math.max(totalH, width));
 
   // Deterministic lit-window pattern using golden-ratio hash (warm interior glow)
   const isLit = (f: number, w: number, side: number) => {
@@ -24,7 +27,7 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
   };
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={[fitScale, fitScale, fitScale]}>
       {/* Foundation */}
       <RoundedBox args={[width * 1.2, 0.25, depth * 1.2]} radius={0.03} position={[0, baseY - 0.12, 0]} receiveShadow>
         <meshPhysicalMaterial color="#57534e" metalness={0.15} roughness={0.85} envMapIntensity={0.3} />
