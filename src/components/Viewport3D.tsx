@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Grid, PerspectiveCamera, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box, X, Maximize2, Minimize2, Sun, Plane } from "lucide-react";
+import { Box, X, Maximize2, Minimize2, Sun, Plane, FileText } from "lucide-react";
 import { DesignParams } from "@/lib/parseDesignParams";
 import { BeamStructure } from "@/components/3d/BeamStructure";
 import { BridgeStructure } from "@/components/3d/BridgeStructure";
@@ -28,6 +28,7 @@ import { Rocket } from "@/components/3d/Rocket";
 import { VesselPreview } from "@/components/3d/previews/VesselPreview";
 import { HeartPreview } from "@/components/3d/previews/HeartPreview";
 import { ConveyorPreview } from "@/components/3d/previews/ConveyorPreview";
+import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 
 const DEFAULT_CAR_CONFIG: CarConfig = {
   bodyColor: "#c8102e",
@@ -179,6 +180,7 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
   const [showEnvMenu, setShowEnvMenu] = useState(false);
   const [userAeroVariant, setUserAeroVariant] = useState<AeroVariant | null>(null);
   const [showAeroMenu, setShowAeroMenu] = useState(false);
+  const [showBlueprint, setShowBlueprint] = useState(false);
 
   // Auto-detect aerospace variant from the label / raw params unless user picked one
   const detectAero = (): AeroVariant => {
@@ -195,6 +197,48 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
     params.structureType === "car"
       ? `WB ${((params.wheelbase || 2.85) * 1000).toFixed(0)}mm • TW ${((params.trackWidth || 1.58) * 1000).toFixed(0)}mm`
       : `${params.beamLength.toFixed(1)}m × ${params.beamHeight.toFixed(1)}m × ${params.beamWidth.toFixed(1)}m`;
+
+  // Map our internal structureType -> EngineeringDrawing type
+  const drawingType: "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" = (() => {
+    switch (params.structureType) {
+      case "car": return "vehicle";
+      case "building":
+      case "bridge":
+      case "truss":
+      case "beam":
+      case "generic":
+        return "building";
+      case "robotics": return "robotics";
+      case "aerospace": return "aerospace";
+      case "marine": return "marine";
+      case "biomedical": return "biomedical";
+      case "industrial": return "industrial";
+      default: return "building";
+    }
+  })();
+
+  // Build a params bag the drawing understands (millimetres)
+  const drawingParams: Record<string, number | string> = (() => {
+    const rp = (params as any).rawParams || {};
+    if (params.structureType === "car") {
+      return {
+        wheelbase: Math.round((params.wheelbase || 2.85) * 1000),
+        trackWidth: Math.round((params.trackWidth || 1.58) * 1000),
+        bodyLength: Math.round((params.wheelbase || 2.85) * 1600),
+        bodyHeight: Math.round((params.bodyHeight || 1.45) * 1000),
+        groundClearance: Math.round((params.groundClearance || 0.145) * 1000),
+        overhangFront: 900,
+        overhangRear: 750,
+        ...rp,
+      };
+    }
+    return {
+      width: Math.round(params.beamWidth * 1000),
+      depth: Math.round(params.beamLength * 1000),
+      height: Math.round(params.columnHeight * 1000),
+      ...rp,
+    };
+  })();
 
   return (
     <>
@@ -278,6 +322,19 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
                     </div>
                   )}
                 </div>
+                {/* Blueprint / 3D toggle */}
+                <button
+                  onClick={() => setShowBlueprint((v) => !v)}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-colors mr-1 ${
+                    showBlueprint
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                  }`}
+                  title={showBlueprint ? "Show 3D view" : "Show technical blueprint"}
+                >
+                  <FileText className="w-3 h-3" />
+                  {showBlueprint ? "3D" : "Blueprint"}
+                </button>
                 {params.structureType === "car" && onOpenConfigurator && (
                   <button
                     onClick={onOpenConfigurator}
@@ -296,17 +353,23 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
             </div>
 
             <div className="flex-1 h-full w-full min-h-0">
-              <Canvas className="h-full w-full" shadows dpr={[1, 2]}
-                gl={{
-                  antialias: true,
-                  toneMapping: THREE.ACESFilmicToneMapping,
-                  toneMappingExposure: 1.25,
-                  outputColorSpace: THREE.SRGBColorSpace,
-                }}>
-                <Suspense fallback={null}>
-                  <SceneContent params={params} envPreset={envPreset} aeroVariant={aeroVariant} />
-                </Suspense>
-              </Canvas>
+              {showBlueprint ? (
+                <div className="h-full w-full overflow-auto bg-[#0a0e1a] p-3">
+                  <EngineeringDrawing type={drawingType} params={drawingParams} />
+                </div>
+              ) : (
+                <Canvas className="h-full w-full" shadows dpr={[1, 2]}
+                  gl={{
+                    antialias: true,
+                    toneMapping: THREE.ACESFilmicToneMapping,
+                    toneMappingExposure: 1.25,
+                    outputColorSpace: THREE.SRGBColorSpace,
+                  }}>
+                  <Suspense fallback={null}>
+                    <SceneContent params={params} envPreset={envPreset} aeroVariant={aeroVariant} />
+                  </Suspense>
+                </Canvas>
+              )}
             </div>
 
             <div className="flex items-center justify-between px-3 py-1.5 border-t border-border bg-card text-[10px] text-muted-foreground font-mono">
