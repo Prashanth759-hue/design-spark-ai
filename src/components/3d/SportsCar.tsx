@@ -29,25 +29,31 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
     sheenColor: "#ffffff",
   } as const;
 
-  // Lamborghini-style supercar proportions
+  // Realistic supercar proportions — taller, less "pancake"
   const wb = 2.7;
-  const tw = 1.65;
-  const gc = 0.1;
+  const tw = 1.55;
+  const gc = 0.18;
   const bodyLen = 4.5;
   const bodyW = tw * 1.05;
-  const bodyH = 0.18;
-  const cabinH = 0.38;
-  const wheelR = 0.34;
+  const bodyH = 0.46;            // ↑ from 0.18, gives the body actual mass
+  const cabinH = 0.5;             // ↑ slightly to keep proportion
+  const wheelR = 0.36;
   const wheelW = 0.24;
 
+  // Body sits above tires; wheels tuck under the fenders
   const bodyY = wheelR + gc + bodyH / 2;
-  const cabinY = bodyY + bodyH / 2 + cabinH / 2 - 0.06;
+  const cabinY = bodyY + bodyH / 2 + cabinH / 2 - 0.08;
+
+  // Wheel center is exactly wheelR above the ground (ground = y 0 in local space)
+  const wheelY = wheelR;
+  // Track sits the tires just inside the body width so they're flush with fenders
+  const wheelZ = bodyW / 2 - wheelW * 0.55;
 
   const wheelPositions: [number, number, number][] = [
-    [-wb / 2, wheelR + gc * 0.5, tw / 2],
-    [-wb / 2, wheelR + gc * 0.5, -tw / 2],
-    [wb / 2, wheelR + gc * 0.5, tw / 2],
-    [wb / 2, wheelR + gc * 0.5, -tw / 2],
+    [-wb / 2,  wheelY,  wheelZ],
+    [-wb / 2,  wheelY, -wheelZ],
+    [ wb / 2,  wheelY,  wheelZ],
+    [ wb / 2,  wheelY, -wheelZ],
   ];
 
   return (
