@@ -11,14 +11,6 @@ import { BuildingStructure } from "@/components/3d/BuildingStructure";
 import { TrussStructure } from "@/components/3d/TrussStructure";
 import { StructureDimensions, CarDimensions } from "@/components/3d/DimensionLabel";
 import { SportsCar } from "@/components/3d/SportsCar";
-import { MuscleCar } from "@/components/3d/MuscleCar";
-import { LuxurySedan } from "@/components/3d/LuxurySedan";
-import { SUVCar } from "@/components/3d/SUVCar";
-import { PickupTruck } from "@/components/3d/PickupTruck";
-import { Convertible } from "@/components/3d/Convertible";
-import { Motorcycle } from "@/components/3d/Motorcycle";
-import { BusVehicle } from "@/components/3d/BusVehicle";
-import { VanVehicle } from "@/components/3d/VanVehicle";
 import { CarConfig } from "@/components/CarConfigurator";
 import { RobotArmPreview } from "@/components/3d/previews/RobotArmPreview";
 import { JetPreview } from "@/components/3d/previews/JetPreview";
@@ -54,20 +46,6 @@ function SceneContent({ params, envPreset, aeroVariant }: { params: DesignParams
   // Pull domain-specific params from designParams (forwarded by Index via designBlockTo3DParams)
   const p = (params as any).rawParams || {};
 
-  // Pick a realistic car model based on the AI-detected vehicle type
-  const vehicleNode = (() => {
-    const t = `${(p.type || "")} ${(params.label || "")}`.toLowerCase();
-    if (/motorcycle|bike/.test(t)) return <Motorcycle color={carConfig.bodyColor} autoRotate={false} />;
-    if (/bus\b/.test(t)) return <BusVehicle color={carConfig.bodyColor} autoRotate={false} />;
-    if (/\bvan\b/.test(t)) return <VanVehicle config={carConfig} autoRotate={false} />;
-    if (/pickup|truck/.test(t)) return <PickupTruck config={carConfig} autoRotate={false} />;
-    if (/suv/.test(t)) return <SUVCar config={carConfig} autoRotate={false} />;
-    if (/convertible|roadster/.test(t)) return <Convertible config={carConfig} autoRotate={false} />;
-    if (/muscle/.test(t)) return <MuscleCar config={carConfig} autoRotate={false} />;
-    if (/sedan|luxury/.test(t)) return <LuxurySedan config={carConfig} autoRotate={false} />;
-    return <SportsCar config={carConfig} autoRotate={false} />;
-  })();
-
   const aerospaceModel = (() => {
     switch (aeroVariant) {
       case "helicopter": return <Helicopter />;
@@ -79,7 +57,7 @@ function SceneContent({ params, envPreset, aeroVariant }: { params: DesignParams
   })();
 
   const structureMap: Record<string, JSX.Element> = {
-    car: vehicleNode,
+    car: <SportsCar config={carConfig} autoRotate={false} />,
     bridge: <BridgeStructure params={params} />,
     building: <BuildingStructure params={params} />,
     truss: <TrussStructure params={params} />,

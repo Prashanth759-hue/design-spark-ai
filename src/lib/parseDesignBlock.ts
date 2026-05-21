@@ -40,11 +40,10 @@ export function parseDesignBlock(messages: { role: string; content: string }[]):
 /**
  * Maps a DesignBlock to the drawing type used by EngineeringDrawing
  */
-export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
-  const map: Record<string, "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
+export function designBlockToDrawingType(block: DesignBlock): "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" {
+  const map: Record<string, "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial"> = {
     vehicle: "vehicle",
     building: "building",
-    bridge: "bridge",
     machine: "machine",
     circuit: "circuit",
     robotics: "robotics",
@@ -79,15 +78,6 @@ export function designBlockToDrawingParams(block: DesignBlock): Record<string, n
         height: p.height || (p.floors || 10) * (p.floorHeight || 3200),
         width: p.width || 18000,
         depth: p.depth || 12000,
-      };
-    case "bridge":
-      return {
-        span: p.span || 40000,
-        deckLength: p.deckLength || 80000,
-        deckWidth: p.deckWidth || 12000,
-        clearance: p.clearance || 6000,
-        towerHeight: p.towerHeight || 35000,
-        material: p.material || "Structural Steel S355",
       };
     case "machine":
       return {
@@ -166,7 +156,6 @@ export function designBlockTo3DParams(block: DesignBlock) {
   const structureTypeMap: Record<string, string> = {
     vehicle: "car",
     building: "building",
-    bridge: "bridge",
     machine: "beam",
     circuit: "beam",
     robotics: "beam",
@@ -196,16 +185,6 @@ export function designBlockTo3DParams(block: DesignBlock) {
   } as any;
 
   switch (block.domain) {
-    case "bridge":
-      return {
-        ...base,
-        structureType: "bridge",
-        beamLength: Math.min(8, Math.max(3, (p.deckLength || 80000) / 12000)),
-        beamWidth: Math.min(2, Math.max(0.6, (p.deckWidth || 12000) / 8000)),
-        beamHeight: 0.4,
-        columnHeight: Math.min(2.2, Math.max(0.8, (p.towerHeight || 35000) / 18000)),
-        label: `${block.type.replace(/_/g, " ")} bridge • ${(p.deckLength || 80000) / 1000}m`,
-      };
     case "robotics":
       return {
         ...base,

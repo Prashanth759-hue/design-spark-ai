@@ -10,15 +10,11 @@ export function BuildingStructure({ params }: { params: DesignParams }) {
     if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
   });
 
-  // Auto-fit: keep total height bounded so the whole building stays in frame.
-  const rawFloors = Math.max(2, Math.round(params.columnHeight * 3));
-  const floors = Math.min(rawFloors, 14);
-  // Shrink floor height as building grows taller so it always fits viewport
-  const floorH = floors > 10 ? 0.22 : floors > 6 ? 0.3 : 0.38;
+  const width = params.beamWidth * 3;
+  const depth = params.beamWidth * 2.5;
+  const floors = Math.max(2, Math.round(params.columnHeight * 3));
+  const floorH = 0.6;
   const totalH = floors * floorH;
-  // Width/depth scaled down + clamped to keep proportion sensible at any size
-  const width = Math.min(params.beamWidth * 1.6, 2.6);
-  const depth = Math.min(params.beamWidth * 1.3, 2.0);
   const baseY = -totalH / 2;
 
   // Deterministic lit-window pattern using golden-ratio hash (warm interior glow)
