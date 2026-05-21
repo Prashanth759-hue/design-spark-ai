@@ -15,7 +15,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
 
   const wheelR = 0.32;
   const wheelW = 0.11;
-  const wb = 1.55; // slightly longer for realistic proportion
+  const wb = 1.45;
 
   const Wheel = ({ pos, ref: wheelRef }: { pos: [number, number, number]; ref: React.RefObject<THREE.Group> }) => (
     <group position={pos} ref={wheelRef}>
