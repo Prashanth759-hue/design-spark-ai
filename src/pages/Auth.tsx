@@ -28,6 +28,14 @@ const Auth = () => {
         });
         return;
       }
+      if (!/^[A-Za-z]+$/.test(name)) {
+        toast({
+          title: "Invalid User Name",
+          description: "User name must contain only alphabet characters (A–Z).",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     setLoading(true);
 
@@ -130,16 +138,18 @@ const Auth = () => {
                     <input
                       type="text"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="5-10 characters"
+                      onChange={(e) => setFullName(e.target.value.replace(/[^A-Za-z]/g, ""))}
+                      placeholder="5-10 letters (A–Z only)"
                       minLength={5}
                       maxLength={10}
+                      pattern="[A-Za-z]{5,10}"
+                      title="Only alphabet characters, 5 to 10 letters"
                       className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
                       required={mode === "register"}
                     />
                   </div>
                   <p className="mt-1 text-[10px] text-muted-foreground">
-                    Must be between 5 and 10 characters.
+                    Alphabet characters only (A–Z), 5 to 10 letters.
                   </p>
                 </motion.div>
               )}
