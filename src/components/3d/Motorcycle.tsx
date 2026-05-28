@@ -9,15 +9,15 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
 
   useFrame((_, d) => {
     if (groupRef.current && autoRotate) groupRef.current.rotation.y += d * 0.15;
-    if (frontWheelRef.current) frontWheelRef.current.rotation.x += d * 2;
-    if (rearWheelRef.current) rearWheelRef.current.rotation.x += d * 2;
+    if (frontWheelRef.current) frontWheelRef.current.rotation.z += d * 2;
+    if (rearWheelRef.current) rearWheelRef.current.rotation.z += d * 2;
   });
 
   const wheelR = 0.32;
   const wheelW = 0.11;
   const wb = 1.45;
 
-  const Wheel = ({ pos, ref: wheelRef }: { pos: [number, number, number]; ref: React.RefObject<THREE.Group> }) => (
+  const Wheel = ({ pos, wheelRef }: { pos: [number, number, number]; wheelRef: React.RefObject<THREE.Group> }) => (
     <group position={pos} ref={wheelRef}>
       {/* Tire */}
       <mesh castShadow>
@@ -72,9 +72,9 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
     // Place the bike so wheel bottoms (y = 0 local) sit on the ground plane
     <group ref={groupRef} position={[0, -0.9, 0]}>
       {/* Rear wheel — directly under the seat/swingarm pivot */}
-      <Wheel pos={[-wb / 2, wheelR, 0]} ref={rearWheelRef} />
+      <Wheel pos={[-wb / 2, wheelR, 0]} wheelRef={rearWheelRef} />
       {/* Front wheel — directly under the fork */}
-      <Wheel pos={[ wb / 2, wheelR, 0]} ref={frontWheelRef} />
+      <Wheel pos={[ wb / 2, wheelR, 0]} wheelRef={frontWheelRef} />
 
       {/* Frame - main tube */}
       <mesh position={[0.1, 0.55, 0]} rotation={[0, 0, -0.18]} castShadow>
