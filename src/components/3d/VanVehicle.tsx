@@ -67,7 +67,7 @@ export function VanVehicle({ config, autoRotate }: { config: CarConfig; autoRota
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.9, 0]}>
+    <group ref={groupRef} position={[0, -0.99, 0]}>
       {/* Chassis */}
       <RoundedBox args={[bodyLen * 0.9, 0.07, bodyW * 0.8]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.06, 0]} castShadow>

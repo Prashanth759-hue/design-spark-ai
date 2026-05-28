@@ -64,7 +64,7 @@ export function Convertible({ config, autoRotate }: { config: CarConfig; autoRot
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.78, 0]}>
+    <group ref={groupRef} position={[0, -0.96, 0]}>
       {/* Underbody */}
       <mesh position={[0, bodyY - bodyH / 2 - 0.04, 0]}>
         <boxGeometry args={[bodyLen * 1.02, 0.025, bodyW * 0.88]} />

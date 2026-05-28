@@ -67,7 +67,7 @@ export function MuscleCar({ config, autoRotate }: { config: CarConfig; autoRotat
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.93, 0]}>
+    <group ref={groupRef} position={[0, -0.97, 0]}>
       {/* Chassis */}
       <RoundedBox args={[wb * 1.12, 0.08, bodyW * 0.84]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.07, 0]} castShadow receiveShadow>
