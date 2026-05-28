@@ -31,7 +31,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
       </mesh>
       {/* Spokes - Y-spoke design */}
       {Array.from({ length: 10 }).map((_, i) => {
-        const a = (i / 6) * Math.PI * 2;
+        const a = (i / 10) * Math.PI * 2;
         return (
           <mesh key={i} rotation={[0, 0, a]} position={[0, 0, 0]} castShadow>
             <boxGeometry args={[0.018, wheelR * 0.68, wheelW * 0.24]} />
