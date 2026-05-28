@@ -71,7 +71,7 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.9, 0]}>
+    <group ref={groupRef} position={[0, -0.99, 0]}>
       {/* Chassis */}
       <RoundedBox args={[wb * 1.1, 0.07, bodyW * 0.82]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.06, 0]} castShadow receiveShadow>
