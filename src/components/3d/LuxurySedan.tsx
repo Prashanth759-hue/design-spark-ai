@@ -97,13 +97,33 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
         <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2.2} />
       </RoundedBox>
 
-      {/* Tall upright cabin */}
-      <RoundedBox args={[wb * 0.62, cabinH, bodyW * 0.88]} radius={0.06}
-        position={[0.05, cabinY, 0]} castShadow>
-        <meshPhysicalMaterial color="#0a1020" metalness={0.15} roughness={0.04}
-          transmission={0.55} thickness={0.5} ior={1.5} envMapIntensity={2}
-          opacity={windowOpacity} transparent />
+      {/* Real sedan greenhouse: roof + glass panels instead of a solid box */}
+      <RoundedBox args={[wb * 0.58, 0.08, bodyW * 0.78]} radius={0.035}
+        position={[0.06, cabinY + cabinH * 0.45, 0]} castShadow>
+        <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness}
+          clearcoat={1} clearcoatRoughness={0.04} envMapIntensity={2.4} />
       </RoundedBox>
+      <RoundedBox args={[wb * 0.54, cabinH * 0.82, bodyW * 0.72]} radius={0.055}
+        position={[0.07, cabinY - 0.03, 0]} castShadow>
+        <meshPhysicalMaterial color={windowColor} metalness={0.08} roughness={0.02}
+          opacity={Math.min(windowOpacity, 0.42)} transparent depthWrite={false} />
+      </RoundedBox>
+
+      {/* A/B/C pillars and belt line make the cabin read like a real sedan */}
+      {[-0.52, -0.02, 0.48].map((x) => (
+        [-1, 1].map((s) => (
+          <mesh key={`${x}-${s}`} position={[x, cabinY + 0.02, s * bodyW * 0.43]} castShadow>
+            <boxGeometry args={[0.045, cabinH * 0.86, 0.04]} />
+            <meshPhysicalMaterial color="#101014" metalness={0.55} roughness={0.22} />
+          </mesh>
+        ))
+      ))}
+      {[-1, 1].map((s) => (
+        <mesh key={`belt-${s}`} position={[0.03, cabinY - cabinH * 0.18, s * bodyW * 0.445]} castShadow>
+          <boxGeometry args={[wb * 0.66, 0.045, 0.035]} />
+          <meshPhysicalMaterial color={bodyColor} metalness={paintMetalness} roughness={paintRoughness} clearcoat={1} />
+        </mesh>
+      ))}
 
       {/* Windshield */}
       <mesh position={[-wb * 0.22, cabinY + 0.05, 0]} rotation={[0, 0, 0.38]} castShadow>
