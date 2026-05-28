@@ -11,7 +11,7 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
   const spokeCount = rimStyle === "mesh" ? 12 : rimStyle === "turbine" ? 5 : 8;
   return (
     <group position={position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.38, 28, 64]} />
         <meshPhysicalMaterial color="#0d0d0d" roughness={0.88} metalness={0.06} />
       </mesh>
@@ -20,8 +20,8 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         <meshPhysicalMaterial color={rimColor} metalness={0.96} roughness={0.05} clearcoat={1} envMapIntensity={2.5} />
       </mesh>
       {Array.from({ length: spokeCount }).map((_, si) => (
-        <mesh key={si} rotation={[Math.PI / 2, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
-          <boxGeometry args={[0.028, wheelW * 0.26, wheelR * 0.55]} />
+        <mesh key={si} rotation={[0, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
+          <boxGeometry args={[0.032, wheelR * 0.55, wheelW * 0.18]} />
           <meshPhysicalMaterial color={rimColor} metalness={0.92} roughness={0.08} />
         </mesh>
       ))}
@@ -56,8 +56,8 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
   const gc = 0.15;
   const bodyLen = 5.0;
   const bodyW = tw * 1.06;
-  const bodyH = 0.28;
-  const cabinH = 0.55;
+  const bodyH = 0.5;
+  const cabinH = 0.62;
   const wheelR = 0.32;
   const wheelW = 0.2;
   const bodyY = wheelR + gc + bodyH / 2;
@@ -71,7 +71,7 @@ export function LuxurySedan({ config, autoRotate }: { config: CarConfig; autoRot
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef} position={[0, -0.9, 0]}>
       {/* Chassis */}
       <RoundedBox args={[wb * 1.1, 0.07, bodyW * 0.82]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.06, 0]} castShadow receiveShadow>
