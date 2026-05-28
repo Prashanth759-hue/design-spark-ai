@@ -20,7 +20,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
   const Wheel = ({ pos, ref: wheelRef }: { pos: [number, number, number]; ref: React.RefObject<THREE.Group> }) => (
     <group position={pos} ref={wheelRef}>
       {/* Tire */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, 0.055, 20, 48]} />
         <meshPhysicalMaterial color="#111" roughness={0.75} metalness={0.05} />
       </mesh>
@@ -30,11 +30,11 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
         <meshPhysicalMaterial color="#c0c0c0" metalness={0.95} roughness={0.05} />
       </mesh>
       {/* Spokes - Y-spoke design */}
-      {Array.from({ length: 6 }).map((_, i) => {
+      {Array.from({ length: 10 }).map((_, i) => {
         const a = (i / 6) * Math.PI * 2;
         return (
-          <mesh key={i} rotation={[Math.PI / 2, 0, a]} position={[0, 0, 0]} castShadow>
-            <boxGeometry args={[0.02, wheelW * 0.4, wheelR * 0.65]} />
+          <mesh key={i} rotation={[0, 0, a]} position={[0, 0, 0]} castShadow>
+            <boxGeometry args={[0.018, wheelR * 0.68, wheelW * 0.24]} />
             <meshPhysicalMaterial color="#e0e0e0" metalness={0.92} roughness={0.06} />
           </mesh>
         );
@@ -70,7 +70,7 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
 
   return (
     // Place the bike so wheel bottoms (y = 0 local) sit on the ground plane
-    <group ref={groupRef} position={[0, -0.6, 0]}>
+    <group ref={groupRef} position={[0, -0.9, 0]}>
       {/* Rear wheel — directly under the seat/swingarm pivot */}
       <Wheel pos={[-wb / 2, wheelR, 0]} ref={rearWheelRef} />
       {/* Front wheel — directly under the fork */}
@@ -92,14 +92,9 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
         <meshPhysicalMaterial color="#222" metalness={0.85} roughness={0.15} />
       </mesh>
 
-      {/* Fuel tank - sculpted */}
-      <mesh position={[0.12, 0.72, 0]} castShadow>
-        <sphereGeometry args={[0.2, 24, 24]} />
-        <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.1} clearcoat={1} clearcoatRoughness={0.02}
-          envMapIntensity={3.5} sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.4} />
-      </mesh>
-      <mesh position={[0.12, 0.71, 0]} castShadow>
-        <boxGeometry args={[0.42, 0.2, 0.28]} />
+      {/* Fuel tank - sculpted teardrop */}
+      <mesh position={[0.08, 0.72, 0]} scale={[1.45, 0.58, 0.78]} castShadow>
+        <sphereGeometry args={[0.24, 32, 24]} />
         <meshPhysicalMaterial color={color} metalness={0.7} roughness={0.1} clearcoat={1} clearcoatRoughness={0.02}
           envMapIntensity={3.5} sheen={0.4} sheenColor="#ffffff" sheenRoughness={0.4} />
       </mesh>
@@ -110,8 +105,8 @@ export function Motorcycle({ color = "#f97316", autoRotate = true }: { color?: s
       </mesh>
 
       {/* Seat */}
-      <mesh position={[-0.25, 0.7, 0]} castShadow>
-        <boxGeometry args={[0.48, 0.06, 0.2]} />
+      <mesh position={[-0.32, 0.68, 0]} rotation={[0, 0, -0.08]} castShadow>
+        <boxGeometry args={[0.58, 0.065, 0.22]} />
         <meshPhysicalMaterial color="#1a1a1a" roughness={0.92} metalness={0} />
       </mesh>
       {/* Seat contour */}
