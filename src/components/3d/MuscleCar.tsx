@@ -11,7 +11,7 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
   const spokeCount = rimStyle === "mesh" ? 8 : rimStyle === "turbine" ? 5 : 6;
   return (
     <group position={position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.44, 28, 64]} />
         <meshPhysicalMaterial color="#111" roughness={0.88} metalness={0.06} />
       </mesh>
@@ -20,8 +20,8 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         <meshPhysicalMaterial color={rimColor} metalness={0.95} roughness={0.06} clearcoat={1} envMapIntensity={2.5} />
       </mesh>
       {Array.from({ length: spokeCount }).map((_, si) => (
-        <mesh key={si} rotation={[Math.PI / 2, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
-          <boxGeometry args={[0.04, wheelW * 0.28, wheelR * 0.54]} />
+        <mesh key={si} rotation={[0, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
+          <boxGeometry args={[0.042, wheelR * 0.54, wheelW * 0.18]} />
           <meshPhysicalMaterial color={rimColor} metalness={0.9} roughness={0.1} />
         </mesh>
       ))}
@@ -52,8 +52,8 @@ export function MuscleCar({ config, autoRotate }: { config: CarConfig; autoRotat
   const gc = 0.14;
   const bodyLen = 4.8;
   const bodyW = tw * 1.08;
-  const bodyH = 0.26;
-  const cabinH = 0.5;
+  const bodyH = 0.48;
+  const cabinH = 0.58;
   const wheelR = 0.36;
   const wheelW = 0.26;
   const bodyY = wheelR + gc + bodyH / 2;
@@ -67,7 +67,7 @@ export function MuscleCar({ config, autoRotate }: { config: CarConfig; autoRotat
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef} position={[0, -0.97, 0]}>
       {/* Chassis */}
       <RoundedBox args={[wb * 1.12, 0.08, bodyW * 0.84]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.07, 0]} castShadow receiveShadow>

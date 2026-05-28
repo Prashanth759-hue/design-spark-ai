@@ -11,7 +11,7 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
   const spokeCount = rimStyle === "mesh" ? 10 : rimStyle === "turbine" ? 5 : 6;
   return (
     <group position={position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.42, 28, 64]} />
         <meshPhysicalMaterial color="#111" roughness={0.92} metalness={0.05} />
       </mesh>
@@ -20,8 +20,8 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         <meshPhysicalMaterial color={rimColor} metalness={0.95} roughness={0.06} clearcoat={1} envMapIntensity={2.5} />
       </mesh>
       {Array.from({ length: spokeCount }).map((_, si) => (
-        <mesh key={si} rotation={[Math.PI / 2, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
-          <boxGeometry args={[0.032, wheelW * 0.26, wheelR * 0.5]} />
+        <mesh key={si} rotation={[0, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
+          <boxGeometry args={[0.035, wheelR * 0.5, wheelW * 0.18]} />
           <meshPhysicalMaterial color={rimColor} metalness={0.92} roughness={0.08} />
         </mesh>
       ))}
@@ -67,7 +67,7 @@ export function VanVehicle({ config, autoRotate }: { config: CarConfig; autoRota
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.7, 0]}>
+    <group ref={groupRef} position={[0, -0.99, 0]}>
       {/* Chassis */}
       <RoundedBox args={[bodyLen * 0.9, 0.07, bodyW * 0.8]} radius={0.02}
         position={[0, bodyY - bodyH / 2 - 0.06, 0]} castShadow>

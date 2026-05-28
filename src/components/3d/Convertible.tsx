@@ -11,7 +11,7 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
   const spokeCount = rimStyle === "mesh" ? 10 : rimStyle === "turbine" ? 5 : 7;
   return (
     <group position={position}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.42, 28, 64]} />
         <meshPhysicalMaterial color="#111" roughness={0.9} metalness={0.05} />
       </mesh>
@@ -20,8 +20,8 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         <meshPhysicalMaterial color={rimColor} metalness={0.96} roughness={0.05} clearcoat={1} envMapIntensity={2.5} />
       </mesh>
       {Array.from({ length: spokeCount }).map((_, si) => (
-        <mesh key={si} rotation={[Math.PI / 2, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
-          <boxGeometry args={[0.025, wheelW * 0.26, wheelR * 0.52]} />
+        <mesh key={si} rotation={[0, 0, (si / spokeCount) * Math.PI * 2]} castShadow>
+          <boxGeometry args={[0.03, wheelR * 0.52, wheelW * 0.18]} />
           <meshPhysicalMaterial color={rimColor} metalness={0.92} roughness={0.08} />
         </mesh>
       ))}
@@ -51,7 +51,7 @@ export function Convertible({ config, autoRotate }: { config: CarConfig; autoRot
   const gc = 0.12;
   const bodyLen = 4.4;
   const bodyW = tw * 1.05;
-  const bodyH = 0.2;
+  const bodyH = 0.42;
   const wheelR = 0.33;
   const wheelW = 0.22;
   const bodyY = wheelR + gc + bodyH / 2;
@@ -64,7 +64,7 @@ export function Convertible({ config, autoRotate }: { config: CarConfig; autoRot
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef} position={[0, -0.96, 0]}>
       {/* Underbody */}
       <mesh position={[0, bodyY - bodyH / 2 - 0.04, 0]}>
         <boxGeometry args={[bodyLen * 1.02, 0.025, bodyW * 0.88]} />

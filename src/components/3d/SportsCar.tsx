@@ -57,7 +57,7 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.5, 0]}>
+    <group ref={groupRef} position={[0, -0.9, 0]}>
       {/* Flat underbody diffuser */}
       <mesh position={[0, bodyY - bodyH / 2 - 0.04, 0]}>
         <boxGeometry args={[bodyLen * 1.05, 0.025, bodyW * 0.9]} />
@@ -65,7 +65,7 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
       </mesh>
 
       {/* Main body — very flat & wide */}
-      <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.04} position={[0, bodyY, 0]} castShadow receiveShadow>
+      <RoundedBox args={[bodyLen, bodyH, bodyW]} radius={0.08} position={[0, bodyY, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial {...paintProps} />
       </RoundedBox>
 
@@ -97,8 +97,8 @@ export function SportsCar({ config, autoRotate }: { config: CarConfig; autoRotat
       </RoundedBox>
 
       {/* Low cabin */}
-      <RoundedBox args={[wb * 0.5, cabinH, bodyW * 0.8]} radius={0.05}
-        position={[0, cabinY, 0]} castShadow>
+      <RoundedBox args={[wb * 0.58, cabinH, bodyW * 0.76]} radius={0.08}
+        position={[0.06, cabinY, 0]} castShadow>
         <meshPhysicalMaterial color="#0a0a1a" metalness={0.2} roughness={0.05}
           transmission={0.5} thickness={0.4} ior={1.5} envMapIntensity={1.5}
           opacity={windowOpacity} transparent />
@@ -243,12 +243,12 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
   return (
     <group position={position}>
       {/* Tire */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+      <mesh castShadow>
         <torusGeometry args={[wheelR, wheelW * 0.42, 28, 64]} />
         <meshPhysicalMaterial color="#0a0a0a" roughness={0.95} metalness={0.02} sheen={0.2} sheenColor="#222222" />
       </mesh>
       {/* Tire sidewall lettering hint */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, wheelW * 0.21]}>
+      <mesh position={[0, 0, wheelW * 0.21]}>
         <torusGeometry args={[wheelR * 0.85, 0.005, 6, 32]} />
         <meshStandardMaterial color="#3a3a3a" roughness={0.7} />
       </mesh>
@@ -262,8 +262,8 @@ function WheelAssembly({ position, wheelR, wheelW, rimColor, rimStyle }: {
         const ang = (si / spokeCount) * Math.PI * 2;
         const isTurbine = rimStyle === "turbine";
         return (
-          <mesh key={si} rotation={[Math.PI / 2, 0, ang + (isTurbine ? 0.3 : 0)]} castShadow>
-            <boxGeometry args={[0.03, wheelW * 0.28, wheelR * 0.52]} />
+          <mesh key={si} rotation={[0, 0, ang + (isTurbine ? 0.3 : 0)]} castShadow>
+            <boxGeometry args={[0.035, wheelR * 0.52, wheelW * 0.18]} />
             <meshPhysicalMaterial color={rimColor} metalness={1} roughness={0.07} envMapIntensity={3} />
           </mesh>
         );
