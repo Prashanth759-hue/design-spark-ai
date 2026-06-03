@@ -88,12 +88,17 @@ export function AirlinerPreview({
         <cylinderGeometry args={[FUSE_R, FUSE_R, LN * 0.82, 36]} />
       </mesh>
       {/* Nose radome */}
-      <mesh castShadow position={[LN * 0.41, 0, 0]} rotation={[0, 0, -Math.PI / 2]} material={fuselage}>
-        <sphereGeometry args={[FUSE_R, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      {/* Nose radome — elongated forward-pointing ogive (scaled sphere) */}
+      <mesh castShadow position={[LN * 0.41, 0, 0]} scale={[1.6, 1, 1]} material={fuselage}>
+        <sphereGeometry args={[FUSE_R, 32, 24]} />
       </mesh>
-      {/* Tail cone */}
-      <mesh castShadow position={[-LN * 0.5, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={fuselage}>
-        <coneGeometry args={[FUSE_R, LN * 0.2, 24]} />
+      {/* Tail cone — tapered tube, NOT a sharp cone, with upswept rear fuselage */}
+      <mesh castShadow position={[-LN * 0.46, 0.05, 0]} rotation={[0, 0, Math.PI / 2]} material={fuselage}>
+        <cylinderGeometry args={[0.05, FUSE_R, LN * 0.22, 24]} />
+      </mesh>
+      {/* APU tail tip */}
+      <mesh position={[-LN * 0.58, 0.1, 0]} rotation={[0, 0, Math.PI / 2]} material={nacelleDark}>
+        <cylinderGeometry args={[0.04, 0.06, 0.08, 12]} />
       </mesh>
 
       {/* Belly fairing (wing-fuselage junction) */}
