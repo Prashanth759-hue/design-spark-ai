@@ -522,6 +522,7 @@ export function EngineeringDrawing({ type, params = {} }: EngineeringDrawingProp
     const mod = Number(params.module || 2.5);
     const cd = Number(params.centerDistance || (teeth1 + teeth2) * mod / 2);
     const material = String(params.material || "42CrMo4");
+    void material;
 
     const gR1 = 40, gR2 = gR1 * gearRatio;
     const avX = margin + 5, avY = margin + 25, avW = 460, avH = 280;
@@ -682,6 +683,189 @@ export function EngineeringDrawing({ type, params = {} }: EngineeringDrawingProp
           ["C.D.", `${cd.toFixed(1)} mm`],
           ["Material", material],
           ["Heat Treat", "Case Harden"],
+        ])}
+      </>
+    );
+  };
+
+  /* ═══════ BRIDGE ═══════ */
+  const drawBridge = () => {
+    const span = Number(params.span || params.depth || 110000); // mm
+    const deckW = Number(params.deckWidth || params.width || 12000);
+    const pierH = Number(params.pierHeight || params.height || 18000);
+    const numPiers = Math.max(2, Number(params.piers || Math.round(span / 30000) + 1));
+    const archH = pierH * 0.7;
+
+    // ── Elevation panel ──
+    const evX = margin + 5, evY = margin + 25, evW = 560, evH = 280;
+    const evScale = Math.min(evW / (span * 1.1), evH / (pierH + archH + 8000)) * 0.85;
+    const eCx = evX + evW / 2;
+    const deckY = evY + evH - 70;
+    const deckPx = span * evScale;
+    const deckThk = Math.max(4, 600 * evScale);
+    const pierHpx = pierH * evScale;
+    const archHpx = archH * evScale;
+
+    // ── Plan (top) panel ──
+    const pnX = evX, pnY = evY + evH + 30, pnW = evW, pnH = 110;
+    const pnScale = pnW / (span * 1.05) * 0.92;
+    const pnCx = pnX + pnW / 2;
+    const pnCy = pnY + pnH / 2;
+    const deckWpx = deckW * pnScale;
+
+    // ── Cross-section panel ──
+    const csX = evX + evW + 25, csY = evY, csW = 240, csH = 200;
+    const csCx = csX + csW / 2;
+    const csBaseY = csY + csH - 30;
+    const csScale = Math.min(csW / deckW, csH / (deckW * 0.5)) * 0.7;
+    const csDeckW = deckW * csScale;
+
+    return (
+      <>
+        {/* ── ELEVATION ── */}
+        <text x={evX} y={evY - 8} fill="#94a3b8" fontSize="10" fontFamily="monospace" fontWeight="bold">ELEVATION — BRIDGE SPAN</text>
+        <rect x={evX} y={evY} width={evW} height={evH} fill="none" stroke="#1e293b" strokeWidth="0.5" />
+
+        {/* Water line */}
+        <line x1={evX + 8} y1={deckY + pierHpx} x2={evX + evW - 8} y2={deckY + pierHpx}
+          stroke="#22d3ee" strokeWidth="0.8" strokeDasharray="6 3" />
+        <text x={evX + 12} y={deckY + pierHpx + 10} fill="#22d3ee" fontSize="6" fontFamily="monospace">WL ±0.000</text>
+
+        {/* Deck */}
+        <rect x={eCx - deckPx / 2} y={deckY} width={deckPx} height={deckThk}
+          fill="none" stroke="#22d3ee" strokeWidth="1.4" />
+        {/* Asphalt hatching */}
+        {crossHatch(eCx - deckPx / 2 + 1, deckY + 1, deckPx - 2, deckThk - 2, 3, "#334155")}
+
+        {/* Arch */}
+        <path d={`M${eCx - deckPx / 2 + 4},${deckY} Q${eCx},${deckY - archHpx} ${eCx + deckPx / 2 - 4},${deckY}`}
+          fill="none" stroke="#f59e0b" strokeWidth="1.6" />
+
+        {/* Suspension cables */}
+        {Array.from({ length: 9 }).map((_, i) => {
+          const t = (i / 8) - 0.5;
+          const x = eCx + t * (deckPx - 20);
+          const ay = deckY - archHpx * (1 - 4 * t * t);
+          return <line key={i} x1={x} y1={ay} x2={x} y2={deckY} stroke="#cbd5e1" strokeWidth="0.5" />;
+        })}
+
+        {/* Piers */}
+        {Array.from({ length: numPiers }).map((_, i) => {
+          const x = eCx - deckPx / 2 + (i * deckPx) / (numPiers - 1);
+          const pierWpx = Math.max(6, 1800 * evScale);
+          return (
+            <g key={i}>
+              <rect x={x - pierWpx / 2} y={deckY + deckThk} width={pierWpx} height={pierHpx}
+                fill="none" stroke="#a8a29e" strokeWidth="1" />
+              {crossHatch(x - pierWpx / 2 + 0.5, deckY + deckThk + 0.5, pierWpx - 1, pierHpx - 1, 4, "#475569")}
+              {/* Footing */}
+              <rect x={x - pierWpx} y={deckY + deckThk + pierHpx} width={pierWpx * 2} height={6}
+                fill="none" stroke="#78716c" strokeWidth="0.8" />
+              {crossHatch(x - pierWpx + 0.5, deckY + deckThk + pierHpx + 0.5, pierWpx * 2 - 1, 5, 2.5, "#57534e")}
+              {/* Grid bubble */}
+              <circle cx={x} cy={deckY + deckThk + pierHpx + 22} r={6} fill="none" stroke="#94a3b8" strokeWidth="0.4" />
+              <text x={x} y={deckY + deckThk + pierHpx + 25} textAnchor="middle" fill="#94a3b8" fontSize="6" fontFamily="monospace">P{i + 1}</text>
+            </g>
+          );
+        })}
+
+        {/* Abutments */}
+        {[-1, 1].map((s) => (
+          <rect key={s} x={eCx + s * deckPx / 2 - (s > 0 ? 0 : 14)} y={deckY + deckThk}
+            width={14} height={pierHpx * 0.8} fill="none" stroke="#a8a29e" strokeWidth="0.8" />
+        ))}
+
+        {/* Dimensions */}
+        {dimLine(eCx - deckPx / 2, deckY - archHpx - 18, eCx + deckPx / 2, deckY - archHpx - 18,
+          `SPAN ${(span / 1000).toFixed(1)} m`, "#22d3ee")}
+        {dimLine(eCx + deckPx / 2 + 22, deckY, eCx + deckPx / 2 + 22, deckY + deckThk + pierHpx,
+          `H ${((pierH) / 1000).toFixed(1)} m`)}
+        {dimLine(eCx - deckPx / 2 - 22, deckY - archHpx, eCx - deckPx / 2 - 22, deckY,
+          `RISE ${(archH / 1000).toFixed(1)} m`, "#f59e0b")}
+
+        {/* ── PLAN VIEW ── */}
+        <text x={pnX} y={pnY - 8} fill="#94a3b8" fontSize="10" fontFamily="monospace" fontWeight="bold">PLAN VIEW</text>
+        <rect x={pnX} y={pnY} width={pnW} height={pnH} fill="none" stroke="#1e293b" strokeWidth="0.5" />
+
+        {/* Deck outline */}
+        <rect x={pnCx - (span * pnScale) / 2} y={pnCy - deckWpx / 2}
+          width={span * pnScale} height={deckWpx} fill="none" stroke="#22d3ee" strokeWidth="1.2" />
+        {/* Center yellow line */}
+        <line x1={pnCx - (span * pnScale) / 2 + 4} y1={pnCy} x2={pnCx + (span * pnScale) / 2 - 4} y2={pnCy}
+          stroke="#fbbf24" strokeWidth="0.6" strokeDasharray="6 3" />
+        {/* Lane markings */}
+        {[-1, 1].map((s) => (
+          <line key={s} x1={pnCx - (span * pnScale) / 2 + 4} y1={pnCy + s * deckWpx * 0.25}
+            x2={pnCx + (span * pnScale) / 2 - 4} y2={pnCy + s * deckWpx * 0.25}
+            stroke="#e5e7eb" strokeWidth="0.4" strokeDasharray="8 4" />
+        ))}
+        {/* Pier markers */}
+        {Array.from({ length: numPiers }).map((_, i) => {
+          const x = pnCx - (span * pnScale) / 2 + (i * span * pnScale) / (numPiers - 1);
+          return <rect key={i} x={x - 3} y={pnCy - deckWpx / 2 - 4} width={6} height={deckWpx + 8}
+            fill="none" stroke="#a8a29e" strokeWidth="0.6" />;
+        })}
+        {dimLine(pnCx - (span * pnScale) / 2, pnCy + deckWpx / 2 + 14,
+          pnCx + (span * pnScale) / 2, pnCy + deckWpx / 2 + 14, `${(span / 1000).toFixed(1)} m`, "#22d3ee")}
+        {dimLine(pnCx + (span * pnScale) / 2 + 14, pnCy - deckWpx / 2,
+          pnCx + (span * pnScale) / 2 + 14, pnCy + deckWpx / 2, `W ${(deckW / 1000).toFixed(1)} m`)}
+
+        {/* ── CROSS-SECTION ── */}
+        <text x={csX} y={csY - 8} fill="#94a3b8" fontSize="10" fontFamily="monospace" fontWeight="bold">SECTION B-B</text>
+        <rect x={csX} y={csY} width={csW} height={csH} fill="none" stroke="#1e293b" strokeWidth="0.5" />
+
+        {/* Deck slab */}
+        <rect x={csCx - csDeckW / 2} y={csBaseY - 80} width={csDeckW} height={14}
+          fill="none" stroke="#22d3ee" strokeWidth="1.2" />
+        {crossHatch(csCx - csDeckW / 2 + 1, csBaseY - 79, csDeckW - 2, 12, 3, "#334155")}
+        {/* Crash barriers */}
+        {[-1, 1].map((s) => (
+          <g key={s}>
+            <rect x={csCx + s * csDeckW / 2 - (s > 0 ? 6 : 0)} y={csBaseY - 96} width={6} height={16}
+              fill="none" stroke="#94a3b8" strokeWidth="0.6" />
+          </g>
+        ))}
+        {/* Girders */}
+        {[-0.3, 0, 0.3].map((t, i) => (
+          <path key={i}
+            d={`M${csCx + t * csDeckW - 8},${csBaseY - 66}
+                L${csCx + t * csDeckW + 8},${csBaseY - 66}
+                L${csCx + t * csDeckW + 8},${csBaseY - 60}
+                L${csCx + t * csDeckW + 2},${csBaseY - 60}
+                L${csCx + t * csDeckW + 2},${csBaseY - 30}
+                L${csCx + t * csDeckW + 8},${csBaseY - 30}
+                L${csCx + t * csDeckW + 8},${csBaseY - 24}
+                L${csCx + t * csDeckW - 8},${csBaseY - 24}
+                L${csCx + t * csDeckW - 8},${csBaseY - 30}
+                L${csCx + t * csDeckW - 2},${csBaseY - 30}
+                L${csCx + t * csDeckW - 2},${csBaseY - 60}
+                L${csCx + t * csDeckW - 8},${csBaseY - 60} Z`}
+            fill="none" stroke="#f59e0b" strokeWidth="0.8" />
+        ))}
+        {/* Pier under section */}
+        <rect x={csCx - 18} y={csBaseY - 24} width={36} height={20}
+          fill="none" stroke="#a8a29e" strokeWidth="0.8" />
+        {crossHatch(csCx - 17, csBaseY - 23, 34, 18, 3, "#475569")}
+        {/* Ground */}
+        <line x1={csX + 8} y1={csBaseY} x2={csX + csW - 8} y2={csBaseY}
+          stroke="#4ade80" strokeWidth="0.8" strokeDasharray="6 3" />
+        {dimLine(csCx - csDeckW / 2, csBaseY - 110, csCx + csDeckW / 2, csBaseY - 110,
+          `${(deckW / 1000).toFixed(1)} m`, "#22d3ee")}
+
+        {/* GD&T + finish callouts */}
+        {toleranceBox(evX + 10, evY + evH - 22, "⏥", "0.05", "A")}
+        {surfaceFinish(evX + 90, evY + evH - 12, "Ra 6.3")}
+
+        {renderSpecsTable([
+          ["Span", `${(span / 1000).toFixed(1)} m`],
+          ["Deck Width", `${(deckW / 1000).toFixed(1)} m`],
+          ["Pier Height", `${(pierH / 1000).toFixed(1)} m`],
+          ["Piers", `${numPiers}`],
+          ["Arch Rise", `${(archH / 1000).toFixed(1)} m`],
+          ["Deck", "RC Slab + Asphalt"],
+          ["Superstructure", "Steel Tied Arch"],
+          ["Foundation", "Pile Caps"],
+          ["Load Class", "HL-93 / IRC-A"],
         ])}
       </>
     );
