@@ -35,6 +35,11 @@ export function AirlinerPreview({
   const SP = wingspan / 10000;
   const LN = fuselageLength / 10000;
 
+  // Helpful aliases — fuselage runs along world +X, wings span world ±Z
+  const FUSE_R = 0.32;        // fuselage radius
+  const NOSE_X = LN * 0.5;    // nose tip x
+  const TAIL_X = -LN * 0.5;   // tail tip x
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (groupRef.current) {
@@ -77,25 +82,23 @@ export function AirlinerPreview({
 
   return (
     <group ref={groupRef} position={[0, 0.3, 0]} scale={0.65}>
-      {/* ────────── Fuselage ────────── */}
-      <group rotation={[0, 0, Math.PI / 2]}>
-        {/* Main tube */}
-        <mesh castShadow material={fuselage}>
-          <cylinderGeometry args={[0.32, 0.32, LN * 0.8, 36]} />
-        </mesh>
-        {/* Nose cone (radome) */}
-        <mesh castShadow position={[LN * 0.42, 0, 0]} material={fuselage}>
-          <sphereGeometry args={[0.32, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        </mesh>
-        {/* Tail cone */}
-        <mesh castShadow position={[-LN * 0.5, 0, 0]} rotation={[0, 0, Math.PI]} material={fuselage}>
-          <coneGeometry args={[0.32, LN * 0.18, 24]} />
-        </mesh>
-      </group>
+      {/* ────────── Fuselage (along world +X) ────────── */}
+      {/* Main tube */}
+      <mesh castShadow material={fuselage} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[FUSE_R, FUSE_R, LN * 0.82, 36]} />
+      </mesh>
+      {/* Nose radome */}
+      <mesh castShadow position={[LN * 0.41, 0, 0]} rotation={[0, 0, -Math.PI / 2]} material={fuselage}>
+        <sphereGeometry args={[FUSE_R, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+      {/* Tail cone */}
+      <mesh castShadow position={[-LN * 0.5, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={fuselage}>
+        <coneGeometry args={[FUSE_R, LN * 0.2, 24]} />
+      </mesh>
 
       {/* Belly fairing (wing-fuselage junction) */}
-      <mesh position={[0, -0.22, 0]} rotation={[0, 0, Math.PI / 2]} material={fuselage}>
-        <cylinderGeometry args={[0.18, 0.22, LN * 0.35, 24]} />
+      <mesh position={[0, -0.2, 0]} rotation={[0, 0, Math.PI / 2]} material={fuselage}>
+        <cylinderGeometry args={[0.2, 0.24, LN * 0.35, 24]} />
       </mesh>
 
       {/* ────────── Cockpit windows (6-pane cluster) ────────── */}

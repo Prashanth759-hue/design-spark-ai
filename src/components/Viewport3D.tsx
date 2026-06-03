@@ -199,11 +199,11 @@ const Viewport3D = ({ visible, onToggle, designParams, onOpenConfigurator }: Vie
       : `${params.beamLength.toFixed(1)}m × ${params.beamHeight.toFixed(1)}m × ${params.beamWidth.toFixed(1)}m`;
 
   // Map our internal structureType -> EngineeringDrawing type
-  const drawingType: "vehicle" | "building" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" = (() => {
+  const drawingType: "vehicle" | "building" | "bridge" | "machine" | "circuit" | "robotics" | "aerospace" | "marine" | "biomedical" | "industrial" = (() => {
     switch (params.structureType) {
       case "car": return "vehicle";
+      case "bridge": return "bridge";
       case "building":
-      case "bridge":
       case "truss":
       case "beam":
       case "generic":

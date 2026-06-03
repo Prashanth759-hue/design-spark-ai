@@ -10,16 +10,19 @@ export function BridgeStructure({ params }: { params: DesignParams }) {
     if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
   });
 
-  const span = params.beamLength;
-  const deckThickness = params.beamHeight;
-  const deckWidth = params.beamWidth;
-  const pierHeight = params.columnHeight;
-  const pierWidth = params.columnWidth;
+  // Clamp source values so AI numbers can't blow up the scene
+  const span = Math.min(Math.max(params.beamLength, 1.5), 4.5);
+  const deckThickness = Math.min(params.beamHeight, 0.18);
+  const deckWidth = Math.min(Math.max(params.beamWidth, 0.5), 1.1);
+  const pierHeight = Math.min(Math.max(params.columnHeight, 0.8), 1.4);
+  const pierWidth = Math.min(Math.max(params.columnWidth, 0.18), 0.32);
   const numPiers = Math.max(2, Math.round(span / 1.5));
   const archHeight = pierHeight * 0.7;
+  // Overall fit-scale so the bridge always sits inside the viewport
+  const fitScale = Math.min(1, 3.2 / (span * 1.1));
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={fitScale} position={[0, -0.2, 0]}>
       {/* Road deck with asphalt-like surface */}
       <RoundedBox args={[span * 1.1, deckThickness, deckWidth]} radius={0.02} position={[0, 0.5, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial color="#52525b" metalness={0.1} roughness={0.85} envMapIntensity={0.4} />
@@ -130,9 +133,9 @@ export function BridgeStructure({ params }: { params: DesignParams }) {
         </RoundedBox>
       ))}
 
-      {/* Water surface */}
+      {/* Water surface — sized to bridge footprint so it doesn't dominate view */}
       <mesh position={[0, 0.5 - pierHeight - 0.1, 0]} receiveShadow>
-        <boxGeometry args={[span * 1.8, 0.04, deckWidth * 4]} />
+        <boxGeometry args={[span * 1.15, 0.04, deckWidth * 1.6]} />
         <meshPhysicalMaterial
           color="#0c4a6e"
           metalness={0.6}
