@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { RoundedBox } from "@react-three/drei";
@@ -120,18 +120,16 @@ export function BridgeStructure({ params }: { params: DesignParams }) {
               const deckX = px + dir * t * (span * 0.42);
               if (Math.abs(deckX) > span * 0.55) return null;
               return (
-                <>
+                <Fragment key={`cbl-${pi}-${dir}-${i}`}>
                   <Cable
-                    key={`cbl-${pi}-${dir}-${i}-a`}
                     from={[0, deckY + pylonH - 0.05, pylonTopGap / 2]}
                     to={[deckX - px, deckY + deckThickness / 2, deckWidth * 0.45]}
                   />
                   <Cable
-                    key={`cbl-${pi}-${dir}-${i}-b`}
                     from={[0, deckY + pylonH - 0.05, -pylonTopGap / 2]}
                     to={[deckX - px, deckY + deckThickness / 2, -deckWidth * 0.45]}
                   />
-                </>
+                </Fragment>
               );
             })
           )}
