@@ -17,6 +17,7 @@ import { usePresence } from "@/hooks/usePresence";
 import { PresenceAvatars } from "@/components/PresenceAvatars";
 import { EngineeringDrawing } from "@/components/EngineeringDrawing";
 import { DEFAULT_AI_MODEL } from "@/lib/aiModels";
+import { Attachment, buildUserContent } from "@/lib/attachments";
 
 const Viewport3D = lazy(() => import("@/components/Viewport3D"));
 
@@ -57,7 +58,7 @@ const Index = () => {
     navigate("/auth");
   };
 
-  const handleSend = async (content: string, module?: string, model?: string) => {
+  const handleSend = async (content: string, attachments: Attachment[] = [], module?: string, model?: string) => {
     const mod = module || activeModule;
     const aiModel = model || selectedModel;
     if (module) setActiveModule(module);
@@ -68,6 +69,7 @@ const Index = () => {
       content,
       module: mod,
       timestamp: new Date(),
+      attachments: attachments.length ? attachments : undefined,
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -75,9 +77,15 @@ const Index = () => {
 
     const history: ChatMsg[] = messages.map((m) => ({
       role: m.role,
-      content: m.content,
+      content: m.attachments && m.attachments.length
+        ? buildUserContent(m.content, m.attachments)
+        : m.content,
     }));
-    history.push({ role: "user", content: `[Module: ${mod}] ${content}` });
+    const moduleTag = `[Module: ${mod}] ${content}`;
+    history.push({
+      role: "user",
+      content: attachments.length ? buildUserContent(moduleTag, attachments) : moduleTag,
+    });
 
     let assistantContent = "";
     const assistantId = (Date.now() + 1).toString();
