@@ -1,4 +1,4 @@
-export type ChatMsg = { role: "user" | "assistant"; content: string };
+export type ChatMsg = { role: "user" | "assistant"; content: string | any[] };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
