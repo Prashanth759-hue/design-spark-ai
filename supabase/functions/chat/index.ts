@@ -141,7 +141,16 @@ serve(async (req) => {
     ]);
     const selectedModel = typeof model === "string" && allowedModels.has(model)
       ? model
-      : "google/gemini-3-flash-preview";
+      : "google/gemini-2.5-flash";
+
+    // Detect whether any user message contains multimodal parts (image/file/audio).
+    // If so, force a multimodal-capable model.
+    const hasMultimodal = Array.isArray(messages) && messages.some((m: any) =>
+      Array.isArray(m?.content) && m.content.some((p: any) =>
+        p?.type === "image_url" || p?.type === "file" || p?.type === "input_audio"
+      )
+    );
+    const finalModel = hasMultimodal ? "google/gemini-2.5-flash" : selectedModel;
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -152,7 +161,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: selectedModel,
+          model: finalModel,
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             ...messages,
