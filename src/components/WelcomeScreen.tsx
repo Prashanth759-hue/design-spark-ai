@@ -11,7 +11,7 @@ const suggestions = [
 ];
 
 interface WelcomeScreenProps {
-  onSuggestionClick: (text: string, module: string) => void;
+  onSuggestionClick: (text: string, attachments?: any[], module?: string) => void;
 }
 
 const WelcomeScreen = ({ onSuggestionClick }: WelcomeScreenProps) => {
@@ -44,7 +44,7 @@ const WelcomeScreen = ({ onSuggestionClick }: WelcomeScreenProps) => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + i * 0.05 }}
-                onClick={() => onSuggestionClick(s.text, s.module)}
+                onClick={() => onSuggestionClick(s.text, [], s.module)}
                 className="group flex items-start gap-3 p-3 rounded-lg border border-border bg-card hover:bg-surface-hover hover:glow-border text-left transition-all"
               >
                 <Icon className="w-4 h-4 text-module-icon shrink-0 mt-0.5" />

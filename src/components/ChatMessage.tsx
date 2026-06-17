@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
-import { Bot, User } from "lucide-react";
+import { Bot, User, Volume2, Loader2, FileText, Box as BoxIcon, Mic, FileSpreadsheet } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { stripDesignBlock } from "@/lib/parseDesignBlock";
+import { useRef, useState } from "react";
+import { synthesizeSpeech } from "@/lib/tts";
+import { toast } from "@/hooks/use-toast";
+import type { Attachment } from "@/lib/attachments";
 
 export interface Message {
   id: string;
@@ -10,6 +14,7 @@ export interface Message {
   content: string;
   module?: string;
   timestamp: Date;
+  attachments?: Attachment[];
 }
 
 interface ChatMessageProps {
@@ -18,6 +23,31 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ message }: ChatMessageProps) => {
   const isUser = message.role === "user";
+  const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleSpeak = async () => {
+    if (playing && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlaying(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const audio = await synthesizeSpeech(stripDesignBlock(message.content));
+      audioRef.current = audio;
+      audio.onended = () => setPlaying(false);
+      audio.onpause = () => setPlaying(false);
+      await audio.play();
+      setPlaying(true);
+    } catch (e: any) {
+      toast({ title: "Voice playback failed", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -28,7 +58,7 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
     >
       <div
         className={`flex items-center justify-center w-7 h-7 rounded-md shrink-0 mt-0.5 ${
-          isUser ? "bg-secondary" : "bg-primary/15"
+          isUser ? "bg-secondary" : "bg-gradient-to-br from-primary/20 to-violet-500/20"
         }`}
       >
         {isUser ? (
@@ -50,7 +80,45 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
           <span className="text-[10px] text-muted-foreground">
             {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
+          {!isUser && message.content && (
+            <button
+              onClick={handleSpeak}
+              className="ml-auto flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-secondary text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+              title={playing ? "Stop" : "Listen"}
+            >
+              {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Volume2 className="w-3 h-3" />}
+              {playing ? "Stop" : "Listen"}
+            </button>
+          )}
         </div>
+
+        {/* User attachments */}
+        {isUser && message.attachments && message.attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {message.attachments.map((a) => (
+              <div key={a.id} className="flex items-center gap-2 rounded-lg border border-border bg-background px-2 py-1.5 text-xs max-w-[220px]">
+                {a.kind === "image" ? (
+                  <img src={a.dataUrl} alt={a.name} className="w-10 h-10 rounded object-cover" />
+                ) : a.kind === "audio" ? (
+                  <audio src={a.dataUrl} controls className="h-8" />
+                ) : (
+                  <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
+                    {a.kind === "pdf" ? <FileText className="w-4 h-4 text-primary" /> :
+                     a.kind === "cad" ? <BoxIcon className="w-4 h-4 text-primary" /> :
+                     <FileSpreadsheet className="w-4 h-4 text-primary" />}
+                  </div>
+                )}
+                {a.kind !== "audio" && (
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate font-medium text-foreground">{a.name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">{a.kind}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {isUser ? (
           <div className="text-sm text-secondary-foreground leading-relaxed whitespace-pre-wrap">
             {message.content}
