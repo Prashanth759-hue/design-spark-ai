@@ -11,7 +11,7 @@ const suggestions = [
 ];
 
 interface WelcomeScreenProps {
-  onSuggestionClick: (text: string, module: string) => void;
+  onSuggestionClick: (text: string, attachments?: any[], module?: string) => void;
 }
 
 const WelcomeScreen = ({ onSuggestionClick }: WelcomeScreenProps) => {
